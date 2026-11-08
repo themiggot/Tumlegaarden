@@ -1,0 +1,45 @@
+name: Byg udgivelsespakke
+
+# Bygger sitet til Windows/IIS (Simply.com) og gemmer resultatet som en zip under "Artifacts".
+# Kører ved push til main, og kan startes manuelt under Actions med valg af runtime.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      runtime:
+        description: "Runtime (spørg Simply om x64 eller x86)"
+        type: choice
+        options: [win-x64, win-x86]
+        default: win-x64
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      RUNTIME: ${{ inputs.runtime || 'win-x64' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Byg og udgiv
+        run: dotnet publish src/Tumlegaarden.Web -c Release -r "$RUNTIME" --self-contained -o publish
+
+      - name: Kontrollér pakken
+        run: |
+          test -f publish/web.config
+          test -f publish/Tumlegaarden.Web.exe
+          test ! -f publish/appsettings.Production.json
+          test ! -f publish/appsettings.Development.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tumlegaarden-${{ env.RUNTIME }}
+          path: publish/
+          retention-days: 30

@@ -67,22 +67,5 @@ Får I en SSL-fejl ved forbindelsen, så skift `SslMode=Required` til `SslMode=P
 
 ## Udgiv til Simply.com
 
-1. **Database:** Opret en MySQL-database i Simply's kontrolpanel (Databaser → MySQL). Notér server, databasenavn, bruger og adgangskode.
-2. **Mailkonto:** Opret fx `noreply@tumlegaarden.dk`, som sitet sender bekræftelses- og nulstillingsmails fra.
-3. **Konfiguration:** Kopiér `appsettings.Production.example.json` til `appsettings.Production.json` og udfyld MySQL-forbindelsesstrengen (server fra kontrolpanelet), mailpassword og `Bootstrap:AdminEmail` (den første administrator). Tjek at `App:PublicBaseUrl` i `appsettings.json` er sitets adresse.
-   Filen er i `.gitignore` og skal aldrig committes.
-4. **Byg:**
-   ```bash
-   dotnet publish src/Tumlegaarden.Web -c Release -o publish
-   ```
-   Udgivelsen er selvstændig (win-x64), så den virker uanset hvilken .NET-version Simply har installeret.
-5. **Upload** indholdet af `publish/` plus din `appsettings.Production.json` til webhotellets rodmappe via FTP.
-6. **HTTPS:** Slå gratis SSL-certifikat (Let's Encrypt) til for domænet i Simply's kontrolpanel. Sitet kræver HTTPS.
-7. Ved første start oprettes tabellerne, og der sendes en administrator-invitation til `Bootstrap:AdminEmail`. Følg linket, vælg adgangskode og sæt to-faktor op. Derefter inviterer du de andre fra siden *Brugere*.
+Se **[DEPLOY.md](DEPLOY.md)** for den komplette vejledning: upload-pakke fra GitHub Actions, MySQL, mail, FTP, første administrator, opdateringer og fejlsøgning.
 
-Hvis du bruger et andet domæne end `tumlegaarden.dk`/`www.tumlegaarden.dk`, så tilføj det i `AllowedHosts` i `appsettings.json`.
-
-### Fejlsøgning
-- *HTTP 500.30 / 500.19:* sæt `stdoutLogEnabled="true"` i `web.config` midlertidigt og læs `logs/`.
-- Databasen oprettes med `EnsureCreated`. Ændres datamodellen senere, skal der skiftes til EF Core-migrations.
-- Mappen `App_Data/keys` skal være skrivbar (krypteringsnøgler til cookies). Slettes den, bliver alle logget ud.
