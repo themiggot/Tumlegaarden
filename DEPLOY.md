@@ -155,7 +155,7 @@ Ser du noget andet end login-siden, så gå til afsnit 9.
 3. Kør **Importer fra Git** igen som i trin 5.
 4. Sitet genstarter selv med den nye version ved næste besøg. Tjek `version.txt` i File Manager.
 
-**Databasen opgraderes selv med nye tabeller.** Kommer der en ny tabel i en ny version (som `Events` til kalenderen), oprettes den automatisk ved opstart, og loggen skriver `Oprettede manglende tabel …`. Nye *kolonner* i eksisterende tabeller oprettes ikke automatisk. Det vil stå i udgivelsesnoterne, hvis det bliver nødvendigt.
+**Databasen opgraderes selv.** Nye tabeller oprettes automatisk ved opstart (`Oprettede manglende tabel …` i loggen), og nye kolonner, der må være tomme, tilføjes til eksisterende tabeller (`Tilføjede manglende kolonne …`). Andre ændringer, fx en kolonne der skal have en værdi i alle rækker, kræver en manuel opdatering. Det vil stå i udgivelsesnoterne, og loggen skriver `kan ikke tilføjes automatisk`.
 
 **Hvis importen fejler med låste filer:** server-softwaren understøtter ikke shadow copy. Gør så sådan:
 1. Upload `app_offline.htm` fra repoets mappe `deploy/` (på `main`) til `/public_html`. Appen stopper og viser en "opdaterer"-side.

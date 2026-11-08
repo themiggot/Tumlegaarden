@@ -15,6 +15,11 @@ public sealed class ChatService(AppDbContext db, UserManager<IdentityUser> userM
 {
     public const string GlobalRoomName = "Alle";
 
+    /// <summary>Chatbeskeder slettes, når de er ældre end dette – og vises aldrig, selv hvis oprydningen ikke har kørt.</summary>
+    public static readonly TimeSpan Retention = TimeSpan.FromHours(24);
+
+    private DateTime Cutoff => time.GetUtcNow().UtcDateTime - Retention;
+
     public sealed record MessageDto(long Id, string User, string Text, string Time, bool Mine);
     public sealed record RoomDto(int Id, string Name, bool IsGlobal, long LatestId);
 
@@ -31,7 +36,8 @@ public sealed class ChatService(AppDbContext db, UserManager<IdentityUser> userM
     {
         var rooms = await RoomsForAsync(user);
         var ids = rooms.Select(r => r.Id).ToList();
-        var latest = await db.ChatMessages.Where(m => ids.Contains(m.RoomId))
+        var cutoff = Cutoff;
+        var latest = await db.ChatMessages.Where(m => ids.Contains(m.RoomId) && m.SentUtc >= cutoff)
             .GroupBy(m => m.RoomId)
             .Select(g => new { RoomId = g.Key, Latest = g.Max(m => m.Id) })
             .ToDictionaryAsync(x => x.RoomId, x => x.Latest);
@@ -44,7 +50,8 @@ public sealed class ChatService(AppDbContext db, UserManager<IdentityUser> userM
     /// <summary>Beskeder efter <paramref name="afterId"/>, eller de seneste <paramref name="take"/> hvis afterId er 0.</summary>
     public async Task<List<MessageDto>> MessagesAsync(ClaimsPrincipal user, int roomId, long afterId, int take = 50)
     {
-        var query = db.ChatMessages.AsNoTracking().Where(m => m.RoomId == roomId);
+        var cutoff = Cutoff;
+        var query = db.ChatMessages.AsNoTracking().Where(m => m.RoomId == roomId && m.SentUtc >= cutoff);
         var messages = afterId > 0
             ? await query.Where(m => m.Id > afterId).OrderBy(m => m.Id).Take(take).ToListAsync()
             : (await query.OrderByDescending(m => m.Id).Take(take).ToListAsync()).OrderBy(m => m.Id).ToList();
@@ -73,6 +80,13 @@ public sealed class ChatService(AppDbContext db, UserManager<IdentityUser> userM
     {
         var t = (text ?? "").Replace("\r\n", "\n").Trim();
         return t.Length is 0 or > ChatMessage.TextMaxLength ? null : t;
+    }
+
+    /// <summary>Sletter beskeder ældre end <see cref="Retention"/>. Returnerer antal slettede.</summary>
+    public async Task<int> DeleteExpiredAsync(CancellationToken ct = default)
+    {
+        var cutoff = Cutoff;
+        return await db.ChatMessages.Where(m => m.SentUtc < cutoff).ExecuteDeleteAsync(ct);
     }
 
     public async Task EnsureGlobalRoomAsync()

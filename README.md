@@ -5,11 +5,13 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 
 ## Funktioner
 
-- **Kalender** som forside efter login. Begivenheder har dato, tidspunkt (eller hele dagen), navn og brødtekst, ligger i tabellen `Events` og foldes ud ved klik (HTML `<details>`, ingen JavaScript).
+- **Kalender** som forside efter login. Begivenheder har startdato og evt. tidspunkt, en valgfri slutdato/-tid (så de kan vare flere dage), navn og brødtekst, ligger i tabellen `Events` og foldes ud ved klik (HTML `<details>`, ingen JavaScript).
 - **Deltagelse:** alle kan svare *Deltager* eller *Deltager ikke* på en begivenhed (tabellen `EventResponses`). Samme knap igen fjerner svaret.
 - **Albums:** alle kan oprette albums og uploade billeder (JPEG, PNG, WebP, GIF). Billederne kodes om med [ImageSharp](https://github.com/SixLabors/ImageSharp): orientering rettes, GPS og andre metadata fjernes, og der gemmes en version på højst 2048 px plus en miniature. Filerne ligger i `/tumlegaarden-data/albums` uden for web-mappen og udleveres kun til brugere, der er logget ind. Maks. størrelse pr. billede (standard 5 MB) styres af administratorer under **Indstillinger** (tabellen `Settings`).
+- **Chatbeskeder slettes efter 24 timer** af et baggrundsjob (hvert kvarter og ved opstart). Gamle beskeder vises heller ikke, selv hvis appen har været i dvale, og jobbet ikke har kørt.
 - **Disclaimer** ved første besøg: privat side uden kommercielle interesser, kun for inviterede. Skal bekræftes med OK. Indeholder også cookie-informationen.
-- **Chat** nederst til højre på alle sider. Rummet "Alle" er for alle brugere. Diktatorer og administratorer opretter rum og vælger medlemmer på `/Chat/Rooms` og kan se alle rum. Uden JavaScript virker chatten som en almindelig side på `/Chat`.
+- **Chat** nederst til højre på alle sider. Rummet "Alle" er for alle brugere. Diktatorer og administratorer opretter rum og vælger medlemmer under **Indstillinger** og kan se alle rum. Alle beskeder slettes automatisk efter 24 timer. Uden JavaScript virker chatten som en almindelig side på `/Chat`.
+- **Indstillinger** samler alle indstillinger: billedstørrelse for albums (kun administratorer) og chatrum (diktatorer og administratorer).
 - **Kun adgang fra Danmark** (IP-filter på alle sider). Se [DEPLOY.md](DEPLOY.md#8a-kun-adgang-fra-danmark).
 - **Login** kun for `@tumlegaarden.dk`, kun via invitation, obligatorisk to-faktor.
 

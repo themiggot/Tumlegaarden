@@ -27,9 +27,9 @@
                 <a asp-page="/Albums/Index">Albums</a>
                 <a asp-page="/Chat/Index">Chat</a>
                 <a asp-page="/Users">Brugere</a>
-                @if (role == Roles.Administrator)
+                @if (role is Roles.Administrator or Roles.Diktator)
                 {
-                    <a asp-page="/Settings">Indstillinger</a>
+                    <a asp-page="/Settings/Index">Indstillinger</a>
                 }
                 <span class="who">@User.Identity!.Name</span>
                 @if (role is not null)

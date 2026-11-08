@@ -36,9 +36,10 @@ public class IndexModel(AppDbContext db, UserManager<IdentityUser> userManager, 
 
         var from = Month.ToDateTime(TimeOnly.MinValue);
         var to = from.AddMonths(1);
+        // Med i måneden hvis den starter før månedens slutning og slutter (eller starter) efter månedens start.
         Events = await db.Events.AsNoTracking()
             .Include(x => x.Responses)
-            .Where(x => x.StartsAt >= from && x.StartsAt < to)
+            .Where(x => x.StartsAt < to && (x.EndsAt ?? x.StartsAt) >= from)
             .OrderBy(x => x.StartsAt).ThenBy(x => x.Title)
             .ToListAsync();
     }
@@ -93,7 +94,31 @@ public class IndexModel(AppDbContext db, UserManager<IdentityUser> userManager, 
         }
     }
 
-    public IEnumerable<CalendarEvent> On(DateOnly day) => Events.Where(x => DateOnly.FromDateTime(x.StartsAt) == day);
+    public IEnumerable<CalendarEvent> On(DateOnly day) => Events.Where(x => x.Covers(day));
 
-    public static string TimeText(CalendarEvent ev) => ev.HasTime ? ev.StartsAt.ToString("HH:mm", CultureInfo.InvariantCulture) : "Hele dagen";
+    private static string Clock(DateTime d) => d.ToString("HH:mm", CultureInfo.InvariantCulture);
+
+    /// <summary>"lør. 14. nov." eller "lør. 14. nov. – man. 16. nov."</summary>
+    public static string DateText(CalendarEvent ev)
+    {
+        var start = ev.StartsAt.ToString("ddd d. MMM", DanishTime.Culture);
+        return ev.IsMultiDay ? $"{start} – {ev.EndsAt!.Value.ToString("ddd d. MMM", DanishTime.Culture)}" : start;
+    }
+
+    /// <summary>"18:00", "18:00–22:00", "fra 18:00", "til 12:00" eller "Hele dagen".</summary>
+    public static string TimeText(CalendarEvent ev)
+    {
+        var endTime = ev.EndHasTime == true && ev.EndsAt is { } end ? Clock(end) : null;
+        return (ev.HasTime, endTime) switch
+        {
+            (true, not null) => $"{Clock(ev.StartsAt)}–{endTime}",
+            (true, null) => ev.IsMultiDay ? $"fra {Clock(ev.StartsAt)}" : Clock(ev.StartsAt),
+            (false, not null) => $"til {endTime}",
+            _ => ev.IsMultiDay ? "Hele dagene" : "Hele dagen"
+        };
+    }
+
+    /// <summary>Teksten i kalendergitteret: tid på første dag, pil på de følgende.</summary>
+    public static (string? Time, bool Continues) ChipFor(CalendarEvent ev, DateOnly day) =>
+        day == ev.StartDate ? (ev.HasTime ? Clock(ev.StartsAt) : null, false) : (null, true);
 }

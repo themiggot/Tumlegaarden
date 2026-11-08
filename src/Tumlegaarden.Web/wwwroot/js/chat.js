@@ -160,7 +160,7 @@ function init(root) {
         if (room !== state.room)
             return; // rummet er skiftet imens
         if (lastId === 0 && data.messages.length === 0 && !list.firstChild) {
-            list.append(el("li", "chat-empty", "Ingen beskeder endnu. Skriv den første."));
+            list.append(el("li", "chat-empty", "Ingen beskeder de sidste 24 timer. Skriv den første."));
         }
         append(data.messages);
     };

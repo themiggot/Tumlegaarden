@@ -31,6 +31,7 @@ builder.Services.AddSingleton(paths);
 builder.Services.AddSingleton<PhotoStore>();
 builder.Services.AddScoped<SiteSettings>();
 builder.Services.AddScoped<ChatService>();
+builder.Services.AddHostedService<ChatCleanupService>();
 
 // Database: MySQL (Simply.com), SQL Server eller – hvis intet er sat op – en SQLite-fil i App_Data.
 var mySql = builder.Configuration.GetConnectionString("MySql");

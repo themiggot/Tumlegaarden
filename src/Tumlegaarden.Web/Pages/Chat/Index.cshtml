@@ -14,7 +14,7 @@
             }
             @if (Model.CanManage)
             {
-                <a asp-page="/Chat/Rooms" class="chat-manage">Administrer rum</a>
+                <a href="/Settings#chatrum" class="chat-manage">Administrer rum</a>
             }
         </nav>
 
@@ -27,7 +27,7 @@
             <ol class="chat-list chat-list-page">
                 @if (Model.Messages.Count == 0)
                 {
-                    <li class="chat-empty">Ingen beskeder endnu. Skriv den første.</li>
+                    <li class="chat-empty">Ingen beskeder de sidste 24 timer. Skriv den første.</li>
                 }
                 @foreach (var m in Model.Messages)
                 {
@@ -43,7 +43,7 @@
                 <textarea id="chat-page-text" name="text" rows="2" maxlength="1000" required placeholder="Skriv en besked …"></textarea>
                 <button type="submit" class="btn btn-primary">Send</button>
             </form>
-            <p class="hint">Siden opdaterer ikke selv. Genindlæs for at se nye beskeder, eller brug chatboksen nederst til højre.</p>
+            <p class="hint">Beskeder slettes automatisk efter 24 timer. Siden opdaterer ikke selv. Genindlæs for at se nye beskeder, eller brug chatboksen nederst til højre.</p>
         }
         @if (Model.CanManage)
         {

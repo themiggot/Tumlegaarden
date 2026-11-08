@@ -1,0 +1,70 @@
+@page
+@model Tumlegaarden.Web.Pages.Settings.IndexModel
+@using Tumlegaarden.Web.Services
+@{
+    ViewData["Title"] = "Indstillinger";
+}
+<nav class="settings-nav" aria-label="Indstillinger">
+    @if (Model.IsAdmin) { <a href="#albums">Albums</a> }
+    <a href="#chatrum">Chatrum</a>
+</nav>
+
+@if (Model.IsAdmin)
+{
+<section class="window" id="albums">
+    <h2 class="window-title">Indstillinger: Albums</h2>
+    <div class="window-body">
+        <form method="post" asp-page-handler="Albums" novalidate>
+            <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
+            <label asp-for="Albums.MaxImageMegabytes">Maks. størrelse pr. billede (MB)</label>
+            <input asp-for="Albums.MaxImageMegabytes" type="number" min="1" max="@PhotoStore.MaxAllowedMegabytes" step="1" inputmode="numeric" />
+            <span asp-validation-for="Albums.MaxImageMegabytes" class="field-err"></span>
+            <p class="hint">Gælder filen brugeren uploader, før den skaleres ned. Mellem 1 og @PhotoStore.MaxAllowedMegabytes MB. Standard er @SiteSettings.DefaultMaxImageMegabytes MB. Billeder fra nyere mobiler fylder typisk 3–10 MB. Kun administratorer kan ændre dette.</p>
+            <div class="actions"><button type="submit" class="btn btn-primary">Gem</button></div>
+        </form>
+    </div>
+</section>
+}
+
+<section class="window" id="chatrum">
+    <h2 class="window-title">Indstillinger: Chatrum</h2>
+    <div class="window-body">
+        <p class="hint">Rummet "Alle" er for alle brugere og kan ikke ændres. Andre rum kan kun ses af deres medlemmer samt diktatorer og administratorer. Alle chatbeskeder slettes automatisk efter 24 timer.</p>
+
+        @if (Model.Rooms.Count == 0)
+        {
+            <p class="hint">Der er ingen andre rum endnu.</p>
+        }
+        <div class="room-list">
+            @foreach (var room in Model.Rooms)
+            {
+                <details class="room" id="room-@room.Id" open="@(Model.Rooms.Count == 1)">
+                    <summary><strong>@room.Name</strong> <span class="hint">@room.Members.Count @(room.Members.Count == 1 ? "medlem" : "medlemmer")</span></summary>
+                    <form method="post" asp-page-handler="Members" asp-route-id="@room.Id">
+                        <fieldset class="members">
+                            <legend>Adgang</legend>
+                            @foreach (var (id, email) in Model.Users)
+                            {
+                                <label class="confirm"><input type="checkbox" name="members" value="@id" checked="@room.Members.Any(m => m.UserId == id)" /> @email</label>
+                            }
+                        </fieldset>
+                        <div class="actions"><button type="submit" class="btn btn-small btn-primary">Gem adgang</button></div>
+                    </form>
+                    <form method="post" asp-page-handler="DeleteRoom" asp-route-id="@room.Id" class="inline room-delete">
+                        <label class="confirm"><input type="checkbox" name="confirm" value="true" /> Bekræft</label>
+                        <button type="submit" class="btn btn-small btn-danger">Slet rum og beskeder</button>
+                    </form>
+                </details>
+            }
+        </div>
+
+        <form method="post" asp-page-handler="CreateRoom" class="create-room" novalidate>
+            <h3>Nyt rum</h3>
+            <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
+            <label asp-for="NewRoom.Name">Navn</label>
+            <input asp-for="NewRoom.Name" maxlength="60" />
+            <span asp-validation-for="NewRoom.Name" class="field-err"></span>
+            <div class="actions"><button type="submit" class="btn btn-primary">Opret rum</button></div>
+        </form>
+    </div>
+</section>

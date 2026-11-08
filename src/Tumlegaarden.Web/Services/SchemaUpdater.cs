@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Tumlegaarden.Web.Data;
 
@@ -9,7 +10,8 @@ namespace Tumlegaarden.Web.Services;
 /// <summary>
 /// EnsureCreated opretter kun tabeller i en tom database. Denne klasse opretter tabeller,
 /// der er kommet til i en nyere version (fx Events), i en eksisterende database.
-/// Den tilføjer IKKE kolonner til eksisterende tabeller – det kræver en manuel ændring.
+/// Tilføjer også nye kolonner til eksisterende tabeller – men kun kolonner der må være tomme (NULL),
+/// så eksisterende rækker ikke skal have en værdi. Andre ændringer kræver en manuel opdatering.
 /// </summary>
 public static partial class SchemaUpdater
 {
@@ -48,8 +50,42 @@ public static partial class SchemaUpdater
         }
     }
 
+    public static async Task AddMissingColumnsAsync(AppDbContext db, ILogger log)
+    {
+        var sql = db.GetService<ISqlGenerationHelper>();
+        foreach (var entity in db.Model.GetEntityTypes())
+        {
+            var table = entity.GetTableName();
+            if (table is null) continue;
+            var quotedTable = sql.DelimitIdentifier(table);
+            var store = StoreObjectIdentifier.Table(table, entity.GetSchema());
+
+            foreach (var property in entity.GetProperties())
+            {
+                var column = property.GetColumnName(store);
+                if (column is null) continue;
+                var quotedColumn = sql.DelimitIdentifier(column);
+                if (await ColumnExistsAsync(db, quotedTable, quotedColumn)) continue;
+
+                if (!property.IsNullable)
+                {
+                    log.LogError("Kolonnen {Table}.{Column} mangler og kan ikke tilføjes automatisk (den må ikke være tom).", table, column);
+                    continue;
+                }
+                await db.Database.ExecuteSqlRawAsync($"ALTER TABLE {quotedTable} ADD {quotedColumn} {property.GetColumnType()} NULL");
+                log.LogInformation("Tilføjede manglende kolonne {Table}.{Column}.", table, column);
+            }
+        }
+    }
+
+    private static Task<bool> ColumnExistsAsync(AppDbContext db, string quotedTable, string quotedColumn) =>
+        ProbeAsync(db, $"SELECT {quotedColumn} FROM {quotedTable} WHERE 1 = 0");
+
     /// <summary>Tjekker direkte på forbindelsen (uden om EF), så en manglende tabel ikke logges som en fejl.</summary>
-    private static async Task<bool> TableExistsAsync(AppDbContext db, string quotedTable)
+    private static Task<bool> TableExistsAsync(AppDbContext db, string quotedTable) =>
+        ProbeAsync(db, $"SELECT 1 FROM {quotedTable} WHERE 1 = 0");
+
+    private static async Task<bool> ProbeAsync(AppDbContext db, string probe)
     {
         var connection = db.Database.GetDbConnection();
         var opened = connection.State != System.Data.ConnectionState.Open;
@@ -57,7 +93,7 @@ public static partial class SchemaUpdater
         try
         {
             await using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT 1 FROM {quotedTable} WHERE 1 = 0";
+            command.CommandText = probe;
             await command.ExecuteNonQueryAsync();
             return true;
         }

@@ -13,18 +13,38 @@
             <input asp-for="Input.Title" maxlength="100" autofocus />
             <span asp-validation-for="Input.Title" class="field-err"></span>
 
-            <div class="field-row">
-                <div class="field">
-                    <label asp-for="Input.Date">Dato</label>
-                    <input asp-for="Input.Date" type="date" min="2000-01-01" max="2100-12-31" />
-                    <span asp-validation-for="Input.Date" class="field-err"></span>
+            <fieldset class="when">
+                <legend>Start</legend>
+                <div class="field-row">
+                    <div class="field">
+                        <label asp-for="Input.Date">Dato</label>
+                        <input asp-for="Input.Date" type="date" min="2000-01-01" max="2100-12-31" />
+                        <span asp-validation-for="Input.Date" class="field-err"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Input.Time">Tidspunkt</label>
+                        <input asp-for="Input.Time" type="time" />
+                        <span class="hint">Tom = hele dagen</span>
+                    </div>
                 </div>
-                <div class="field">
-                    <label asp-for="Input.Time">Tidspunkt</label>
-                    <input asp-for="Input.Time" type="time" />
-                    <span class="hint">Tom = hele dagen</span>
+            </fieldset>
+
+            <fieldset class="when">
+                <legend>Slut (valgfri)</legend>
+                <div class="field-row">
+                    <div class="field">
+                        <label asp-for="Input.EndDate">Dato</label>
+                        <input asp-for="Input.EndDate" type="date" min="2000-01-01" max="2100-12-31" />
+                        <span asp-validation-for="Input.EndDate" class="field-err"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Input.EndTime">Tidspunkt</label>
+                        <input asp-for="Input.EndTime" type="time" />
+                        <span asp-validation-for="Input.EndTime" class="field-err"></span>
+                    </div>
                 </div>
-            </div>
+                <p class="hint">Udfyld slutdato, hvis begivenheden varer flere dage. Tom = samme dag.</p>
+            </fieldset>
 
             <label asp-for="Input.Body">Tekst</label>
             <textarea asp-for="Input.Body" rows="8" maxlength="4000"></textarea>

@@ -44,8 +44,10 @@
                                     {
                                         foreach (var ev in Model.On(day))
                                         {
-                                            <a class="cal-chip" href="?m=@Model.MonthKey(Model.Month)&amp;e=@ev.Id#e-@ev.Id" title="@IndexModel.TimeText(ev) @ev.Title">
-                                                @if (ev.HasTime) { <span class="cal-chip-time">@IndexModel.TimeText(ev)</span> }
+                                            var (chipTime, continues) = IndexModel.ChipFor(ev, day);
+                                            <a class="cal-chip@(ev.IsMultiDay ? " cal-chip-multi" : "")@(continues ? " cal-chip-cont" : "")" href="?m=@Model.MonthKey(Model.Month)&amp;e=@ev.Id#e-@ev.Id" title="@IndexModel.DateText(ev) @IndexModel.TimeText(ev): @ev.Title">
+                                                @if (continues) { <span class="cal-chip-time" aria-hidden="true">&rarr;</span> }
+                                                else if (chipTime is not null) { <span class="cal-chip-time">@chipTime</span> }
                                                 <span class="cal-chip-title">@ev.Title</span>
                                             </a>
                                         }
@@ -74,7 +76,7 @@
                 {
                     <details class="event" id="e-@ev.Id" open="@(Model.OpenId == ev.Id)">
                         <summary>
-                            <span class="event-date">@ev.StartsAt.ToString("ddd d. MMM", Model.Culture)</span>
+                            <span class="event-date">@IndexModel.DateText(ev)</span>
                             <span class="event-time">@IndexModel.TimeText(ev)</span>
                             <span class="event-title">@ev.Title</span>
                             <span class="event-rsvp">
