@@ -1,0 +1,28 @@
+@page "{id:int}"
+@model Tumlegaarden.Web.Pages.Albums.PhotoModel
+@{
+    ViewData["Title"] = Model.Photo.Album!.Title;
+}
+<section class="window window-wide">
+    <h2 class="window-title">@Model.Photo.Album!.Title</h2>
+    <div class="window-body">
+        <nav class="photo-nav" aria-label="Billeder">
+            <a asp-page="/Albums/Album" asp-route-id="@Model.Photo.AlbumId">&lsaquo; Tilbage til albummet</a>
+            <span class="hint num">@Model.Position / @Model.Total</span>
+            <span class="photo-steps">
+                @if (Model.PreviousId is int prev) { <a class="btn btn-small" asp-page="/Albums/Photo" asp-route-id="@prev" aria-label="Forrige billede">&lsaquo;</a> }
+                @if (Model.NextId is int next) { <a class="btn btn-small" asp-page="/Albums/Photo" asp-route-id="@next" aria-label="Næste billede">&rsaquo;</a> }
+            </span>
+        </nav>
+        <figure class="photo-large">
+            <img src="/Albums/Image/@Model.Photo.Id/large" alt="@Model.Photo.OriginalName" width="@Model.Photo.Width" height="@Model.Photo.Height" />
+            <figcaption class="hint">Uploadet af @Model.Photo.UploadedByEmail · @Model.Photo.UploadedUtc.ToLocalTime().ToString("d. MMMM yyyy", Tumlegaarden.Web.Services.DanishTime.Culture)</figcaption>
+        </figure>
+        @if (Model.CanDelete)
+        {
+            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Photo.Id" class="inline">
+                <button type="submit" class="btn btn-small btn-danger">Slet billede</button>
+            </form>
+        }
+    </div>
+</section>

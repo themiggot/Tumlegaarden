@@ -21,23 +21,30 @@ public static partial class SchemaUpdater
             .Where(s => s.Length > 0 && !s.Equals("GO", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
+        var missing = new List<string>();
         foreach (var table in db.Model.GetEntityTypes().Select(e => e.GetTableName()).OfType<string>().Distinct())
         {
-            var quoted = sql.DelimitIdentifier(table);
-            if (await TableExistsAsync(db, quoted)) continue;
+            if (!await TableExistsAsync(db, sql.DelimitIdentifier(table))) missing.Add(table);
+        }
+        if (missing.Count == 0) return;
 
-            var create = statements
-                .Where(s => s.StartsWith($"CREATE TABLE {quoted}", StringComparison.Ordinal)
-                         || (s.StartsWith("CREATE ", StringComparison.Ordinal) && s.Contains($" ON {quoted}", StringComparison.Ordinal)))
-                .ToList();
-            if (create.Count == 0)
-            {
-                log.LogError("Tabellen {Table} mangler, men der blev ikke fundet en CREATE-sætning til den.", table);
-                continue;
-            }
+        // Udfør sætningerne i scriptets rækkefølge, så en tabel oprettes før de tabeller, der peger på den.
+        var quoted = missing.Select(t => sql.DelimitIdentifier(t)).ToList();
+        var created = new HashSet<string>();
+        foreach (var statement in statements)
+        {
+            var table = quoted.FirstOrDefault(q =>
+                statement.StartsWith($"CREATE TABLE {q}", StringComparison.Ordinal)
+                || (statement.StartsWith("CREATE ", StringComparison.Ordinal) && statement.Contains($" ON {q}", StringComparison.Ordinal)));
+            if (table is null) continue;
+            await db.Database.ExecuteSqlRawAsync(statement);
+            created.Add(table);
+        }
 
-            foreach (var statement in create) await db.Database.ExecuteSqlRawAsync(statement);
-            log.LogInformation("Oprettede manglende tabel {Table}.", table);
+        foreach (var table in missing)
+        {
+            if (created.Contains(sql.DelimitIdentifier(table))) log.LogInformation("Oprettede manglende tabel {Table}.", table);
+            else log.LogError("Tabellen {Table} mangler, men der blev ikke fundet en CREATE-sætning til den.", table);
         }
     }
 

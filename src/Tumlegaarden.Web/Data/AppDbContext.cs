@@ -9,6 +9,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
 {
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<CalendarEvent> Events => Set<CalendarEvent>();
+    public DbSet<EventResponse> EventResponses => Set<EventResponse>();
+    public DbSet<Album> Albums => Set<Album>();
+    public DbSet<Photo> Photos => Set<Photo>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -35,6 +38,36 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             e.Property(x => x.Body).HasMaxLength(CalendarEvent.BodyMaxLength).IsRequired();
             e.Property(x => x.CreatedById).HasMaxLength(255);
             e.Property(x => x.CreatedByEmail).HasMaxLength(256);
+        });
+
+        builder.Entity<EventResponse>(e =>
+        {
+            e.ToTable("EventResponses");
+            e.HasKey(x => new { x.EventId, x.UserId });
+            e.Property(x => x.UserId).HasMaxLength(255);
+            e.Property(x => x.UserEmail).HasMaxLength(256);
+            e.HasOne(x => x.Event).WithMany(x => x.Responses).HasForeignKey(x => x.EventId).OnDelete(DeleteBehavior.Cascade);
+            // Slettes en bruger, forsvinder brugerens svar også.
+            e.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Album>(e =>
+        {
+            e.ToTable("Albums");
+            e.Property(x => x.Title).HasMaxLength(Album.TitleMaxLength).IsRequired();
+            e.Property(x => x.Description).HasMaxLength(Album.DescriptionMaxLength).IsRequired();
+            e.Property(x => x.CreatedById).HasMaxLength(255);
+            e.Property(x => x.CreatedByEmail).HasMaxLength(256);
+        });
+
+        builder.Entity<Photo>(e =>
+        {
+            e.ToTable("Photos");
+            e.HasOne(x => x.Album).WithMany(x => x.Photos).HasForeignKey(x => x.AlbumId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(x => x.StorageName).HasMaxLength(64);
+            e.Property(x => x.OriginalName).HasMaxLength(255);
+            e.Property(x => x.UploadedById).HasMaxLength(255);
+            e.Property(x => x.UploadedByEmail).HasMaxLength(256);
         });
 
         builder.Entity<Invitation>(e =>

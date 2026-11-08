@@ -1,0 +1,76 @@
+@page "{id:int}"
+@model Tumlegaarden.Web.Pages.Albums.AlbumModel
+@using Tumlegaarden.Web.Services
+@{
+    ViewData["Title"] = Model.Album.Title;
+    TempData.Remove("UploadErrors");
+}
+<section class="window window-wide">
+    <h2 class="window-title">@Model.Album.Title</h2>
+    <div class="window-body">
+        <p class="crumbs"><a asp-page="/Albums/Index">&lsaquo; Alle albums</a></p>
+        @if (!string.IsNullOrWhiteSpace(Model.Album.Description))
+        {
+            <p class="album-description">@Model.Album.Description</p>
+        }
+        <p class="hint">Oprettet af @Model.Album.CreatedByEmail · @Model.Album.Photos.Count @(Model.Album.Photos.Count == 1 ? "billede" : "billeder")</p>
+
+        @if (Model.UploadErrors.Count > 0)
+        {
+            <div class="msg msg-err" role="alert">
+                <p>Nogle filer blev sprunget over:</p>
+                <ul>@foreach (var e in Model.UploadErrors) { <li>@e</li> }</ul>
+            </div>
+        }
+
+        @if (Model.Album.Photos.Count == 0)
+        {
+            <p class="hint">Albummet er tomt. Upload de første billeder nedenfor.</p>
+        }
+        else
+        {
+            <ul class="photo-grid">
+                @foreach (var p in Model.Album.Photos)
+                {
+                    <li>
+                        <a asp-page="/Albums/Photo" asp-route-id="@p.Id">
+                            <img src="/Albums/Image/@p.Id/thumb" alt="@p.OriginalName" width="400" height="400" loading="lazy" />
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+
+        <form method="post" asp-page-handler="Upload" asp-route-id="@Model.Album.Id" enctype="multipart/form-data" class="upload-form">
+            <h3>Upload billeder</h3>
+            <label for="files">Vælg billeder</label>
+            <input id="files" name="files" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" required />
+            <p class="hint">JPEG, PNG, WebP eller GIF. Højst @PhotoStore.MaxFilesPerUpload billeder ad gangen og 25 MB pr. billede. Billederne gemmes i højst 2048 px, og GPS-position og andre metadata fjernes. Upload kan tage lidt tid.</p>
+            <div class="actions"><button type="submit" class="btn btn-primary">Upload</button></div>
+        </form>
+
+        @if (Model.CanManage)
+        {
+            <details class="manage">
+                <summary>Rediger eller slet album</summary>
+                <form method="post" asp-page-handler="Edit" asp-route-id="@Model.Album.Id" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
+                    <label asp-for="Edit.Title">Navn</label>
+                    <input asp-for="Edit.Title" maxlength="100" />
+                    <span asp-validation-for="Edit.Title" class="field-err"></span>
+                    <label asp-for="Edit.Description">Beskrivelse</label>
+                    <textarea asp-for="Edit.Description" rows="3" maxlength="1000"></textarea>
+                    <div class="actions"><button type="submit" class="btn">Gem</button></div>
+                </form>
+                <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Album.Id" class="delete-form">
+                    <h3>Slet album</h3>
+                    <p class="hint">Sletter albummet og alle @Model.Album.Photos.Count billeder. Kan ikke fortrydes.</p>
+                    <div class="inline">
+                        <label class="confirm"><input type="checkbox" name="confirm" value="true" /> Bekræft</label>
+                        <button type="submit" class="btn btn-small btn-danger">Slet album</button>
+                    </div>
+                </form>
+            </details>
+        }
+    </div>
+</section>

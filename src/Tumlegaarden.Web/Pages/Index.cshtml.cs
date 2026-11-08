@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Tumlegaarden.Web.Data;
@@ -15,9 +16,10 @@ public class IndexModel(AppDbContext db, UserManager<IdentityUser> userManager, 
     public DateOnly Today { get; private set; }
     public List<CalendarEvent> Events { get; private set; } = [];
     public int? OpenId { get; private set; }
-    public bool CanCreate { get; private set; }
+    /// <summary>Alle brugere kan oprette begivenheder.</summary>
+    public bool CanCreate => true;
+    public string? UserId => _userId ??= userManager.GetUserId(User);
     private string? _userId;
-    private bool _isAdmin;
 
     public CultureInfo Culture => DanishTime.Culture;
     public string MonthKey(DateOnly d) => d.ToString("yyyy-MM", CultureInfo.InvariantCulture);
@@ -35,17 +37,48 @@ public class IndexModel(AppDbContext db, UserManager<IdentityUser> userManager, 
         var from = Month.ToDateTime(TimeOnly.MinValue);
         var to = from.AddMonths(1);
         Events = await db.Events.AsNoTracking()
+            .Include(x => x.Responses)
             .Where(x => x.StartsAt >= from && x.StartsAt < to)
             .OrderBy(x => x.StartsAt).ThenBy(x => x.Title)
             .ToListAsync();
-
-        _userId = userManager.GetUserId(User);
-        _isAdmin = User.IsInRole(Roles.Administrator);
-        CanCreate = _isAdmin || User.IsInRole(Roles.Diktator);
     }
 
-    /// <summary>Diktatorer kan rette egne begivenheder, administratorer alle.</summary>
-    public bool CanEdit(CalendarEvent ev) => _isAdmin || (CanCreate && ev.CreatedById == _userId);
+    /// <summary>Alle kan rette egne begivenheder. Diktatorer og administratorer kan rette alle.</summary>
+    public bool CanEdit(CalendarEvent ev) => Roles.IsModerator(User) || ev.CreatedById == UserId;
+
+    public bool? MyAnswer(CalendarEvent ev) => ev.Responses.FirstOrDefault(r => r.UserId == UserId)?.Attending;
+
+    /// <summary>Deltager / deltager ikke. Samme knap igen fjerner svaret.</summary>
+    public async Task<IActionResult> OnPostRespondAsync(int id, bool attending, string? m)
+    {
+        var ev = await db.Events.FindAsync(id);
+        if (ev is null) return NotFound();
+        var user = await userManager.GetUserAsync(User);
+        if (user is null) return Forbid();
+
+        var response = await db.EventResponses.FindAsync(id, user.Id);
+        string status;
+        if (response is not null && response.Attending == attending)
+        {
+            db.EventResponses.Remove(response);
+            status = $"Dit svar til \"{ev.Title}\" er fjernet.";
+        }
+        else
+        {
+            if (response is null)
+            {
+                response = new EventResponse { EventId = id, UserId = user.Id, UserEmail = user.Email ?? "" };
+                db.EventResponses.Add(response);
+            }
+            response.Attending = attending;
+            response.UpdatedUtc = time.GetUtcNow().UtcDateTime;
+            status = attending ? $"Du deltager i \"{ev.Title}\"." : $"Du deltager ikke i \"{ev.Title}\".";
+        }
+        await db.SaveChangesAsync();
+
+        TempData["Status"] = status;
+        return Redirect($"{Url.Page("/Index", new { m = ev.StartsAt.ToString("yyyy-MM", CultureInfo.InvariantCulture), e = id })}#e-{id}");
+    }
 
     /// <summary>Uger (mandag–søndag) der dækker måneden, med ISO-ugenummer.</summary>
     public IEnumerable<(int Week, DateOnly[] Days)> Weeks()

@@ -65,7 +65,7 @@
     <div class="window-body">
         @if (Model.Events.Count == 0)
         {
-            <p class="hint">Ingen begivenheder i @Model.Month.ToString("MMMM", Model.Culture).@(Model.CanCreate ? " Klik på Ny begivenhed for at tilføje den første." : "")</p>
+            <p class="hint">Ingen begivenheder i @Model.Month.ToString("MMMM", Model.Culture). Klik på Ny begivenhed for at tilføje den første.</p>
         }
         else
         {
@@ -77,12 +77,29 @@
                             <span class="event-date">@ev.StartsAt.ToString("ddd d. MMM", Model.Culture)</span>
                             <span class="event-time">@IndexModel.TimeText(ev)</span>
                             <span class="event-title">@ev.Title</span>
+                            <span class="event-rsvp">
+                                @{ var going = ev.Responses.Count(r => r.Attending); var mine = Model.MyAnswer(ev); }
+                                @if (mine == true) { <span class="tag tag-ok">Du deltager</span> }
+                                else if (mine == false) { <span class="tag tag-muted">Deltager ikke</span> }
+                                <span class="rsvp-count" title="@going deltager">@going deltager</span>
+                            </span>
                         </summary>
                         <div class="event-content">
                             @if (!string.IsNullOrWhiteSpace(ev.Body))
                             {
                                 <div class="event-body">@ev.Body</div>
                             }
+                            @{ var yes = ev.Responses.Where(r => r.Attending).OrderBy(r => r.UserEmail).ToList(); var no = ev.Responses.Where(r => !r.Attending).OrderBy(r => r.UserEmail).ToList(); var my = Model.MyAnswer(ev); }
+                            <form method="post" asp-page-handler="Respond" asp-route-id="@ev.Id" asp-route-m="@Model.MonthKey(Model.Month)" class="rsvp">
+                                <button type="submit" name="attending" value="true" class="btn btn-small @(my == true ? "btn-on" : "")" aria-pressed="@(my == true ? "true" : "false")">Deltager</button>
+                                <button type="submit" name="attending" value="false" class="btn btn-small @(my == false ? "btn-on" : "")" aria-pressed="@(my == false ? "true" : "false")">Deltager ikke</button>
+                            </form>
+                            <dl class="rsvp-lists">
+                                <dt>Deltager (@yes.Count)</dt>
+                                <dd>@(yes.Count == 0 ? "Ingen endnu" : string.Join(", ", yes.Select(r => r.DisplayName)))</dd>
+                                <dt>Deltager ikke (@no.Count)</dt>
+                                <dd>@(no.Count == 0 ? "Ingen" : string.Join(", ", no.Select(r => r.DisplayName)))</dd>
+                            </dl>
                             <p class="hint">Oprettet af @ev.CreatedByEmail@(ev.UpdatedUtc is not null ? " · redigeret" : "")</p>
                             @if (Model.CanEdit(ev))
                             {

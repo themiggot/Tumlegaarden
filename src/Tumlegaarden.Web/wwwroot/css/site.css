@@ -1,8 +1,7 @@
 /* Tumlegaarden – 16-bit skrivebordstema: vinduer med skrå kanter og stribede titellinjer.
    Ingen JavaScript, kun CSS. Bevidst ét tema (mørkt skrivebord, lyse vinduer). */
 
-@font-face { font-family: "Pixelify Sans"; src: url("../fonts/pixelify-sans-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Pixelify Sans"; src: url("../fonts/pixelify-sans-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "DotGothic16"; src: url("../fonts/dotgothic16-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Silkscreen"; src: url("../fonts/silkscreen-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 
 :root {
@@ -31,8 +30,10 @@
     --warn: #9a6e1f;
     --err: #a3313c;
     /* Typografi */
-    --font-display: "Silkscreen", "Pixelify Sans", ui-monospace, monospace;
-    --font-body: "Pixelify Sans", ui-monospace, "Courier New", monospace;
+    /* DotGothic16: pixel-skrift med tydelige Æ, Ø, Å og E. Silkscreen kun til logoet (den har ingen pæne ÆØÅ). */
+    --font-logo: "Silkscreen", "DotGothic16", ui-monospace, monospace;
+    --font-display: "DotGothic16", ui-monospace, monospace;
+    --font-body: "DotGothic16", ui-monospace, "Courier New", monospace;
     --b: 2px; /* én "pixel" */
 }
 
@@ -42,8 +43,8 @@ html, body { min-height: 100%; }
 body {
     margin: 0;
     font-family: var(--font-body);
-    font-size: 17px;
-    line-height: 1.5;
+    font-size: 16px;
+    line-height: 1.6;
     color: var(--ink);
     background-color: var(--desk);
     background-image: radial-gradient(var(--desk-dot) 1px, transparent 1.5px);
@@ -70,7 +71,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     margin: 0 auto;
     padding: 28px 16px 8px;
 }
-.logo { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 6vw, 44px); line-height: 1; }
+.logo { margin: 0; font-family: var(--font-logo); font-weight: 400; font-size: clamp(26px, 6vw, 44px); line-height: 1; }
 .logo a { color: var(--face-hi); text-decoration: none; text-shadow: 3px 3px 0 var(--edge); }
 
 .topnav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
@@ -131,7 +132,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .window-body { padding: 18px 18px 22px; }
 .window-body > :first-child { margin-top: 0; }
 .window-body p { margin: 0 0 14px; }
-.window-body h3 { margin: 24px 0 10px; font-family: var(--font-display); font-weight: 400; font-size: 14px; }
+.window-body h3 { margin: 24px 0 10px; font-family: var(--font-display); font-weight: 400; font-size: 16px; }
 .prose { max-width: 70ch; }
 
 .hint { color: var(--muted); font-size: 15px; }
@@ -250,7 +251,7 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent);
 .table-wrap { overflow-x: auto; background: var(--field); box-shadow: inset 0 0 0 var(--b) var(--face-lo); }
 table { width: 100%; border-collapse: collapse; font-size: 15px; }
 th, td { padding: 8px 10px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--face); }
-th { font-family: var(--font-display); font-weight: 400; font-size: 12px; letter-spacing: .04em; background: var(--face-hi); }
+th { font-family: var(--font-display); font-weight: 400; font-size: 13px; letter-spacing: .04em; background: var(--face-hi); }
 td { overflow-wrap: anywhere; }
 .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -315,7 +316,7 @@ code { font-family: ui-monospace, "Courier New", monospace; font-size: 15px; }
 .events { display: flex; flex-direction: column; gap: 8px; }
 .event { background: var(--field); box-shadow: inset 0 0 0 var(--b) var(--face-lo); }
 .event[open] { box-shadow: inset 0 0 0 var(--b) var(--title); }
-.event summary { position: relative; display: grid; grid-template-columns: 8.5em 6.5em minmax(0, 1fr); gap: 8px; align-items: baseline;
+.event summary { position: relative; display: grid; grid-template-columns: 8.5em 6.5em minmax(0, 1fr) auto; gap: 8px; align-items: baseline;
                  padding: 10px 12px 10px 28px; cursor: pointer; list-style: none; }
 .event summary::-webkit-details-marker { display: none; }
 .event summary::before { content: "+"; position: absolute; left: 12px; top: 10px; width: 1ch; text-align: center; font-weight: 700; color: var(--title); }
@@ -327,6 +328,42 @@ code { font-family: ui-monospace, "Courier New", monospace; font-size: 15px; }
 .event-body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0 0 12px; max-width: 70ch; }
 .event-content .hint { margin: 0; font-size: 14px; }
 .event-content .actions { margin-top: 10px; }
+
+.event-rsvp { display: flex; gap: 8px; align-items: baseline; justify-self: end; white-space: nowrap; }
+.rsvp-count { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.tag-muted { background: var(--face-lo); }
+.rsvp { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 12px; }
+.btn-on { color: var(--face-hi); background: var(--title);
+          box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 var(--title-stripe), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 #1f4044; }
+.btn-on::before { content: "\2713\00a0"; }
+.rsvp-lists { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; margin: 0 0 12px; font-size: 15px; }
+.rsvp-lists dt { font-weight: 700; }
+.rsvp-lists dd { margin: 0; overflow-wrap: anywhere; color: var(--muted); }
+
+/* ---------- Albums ---------- */
+.album-grid, .photo-grid { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 14px; }
+.album-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.photo-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.album-card { display: flex; flex-direction: column; gap: 4px; height: 100%; padding: 6px; color: var(--ink); text-decoration: none; background: var(--field);
+              box-shadow: 0 0 0 var(--b) var(--edge), inset -2px -2px 0 var(--face-lo); }
+.album-card:hover, .album-card:focus-visible { box-shadow: 0 0 0 var(--b) var(--accent), inset -2px -2px 0 var(--face-lo); }
+.album-card img, .album-empty, .photo-grid img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; image-rendering: auto; }
+.album-empty { display: grid; place-items: center; color: var(--face-lo); background: var(--face); }
+.album-title { font-weight: 700; overflow-wrap: anywhere; }
+.album-meta { color: var(--muted); font-size: 14px; }
+.photo-grid a { display: block; box-shadow: 0 0 0 var(--b) var(--edge); }
+.photo-grid a:hover, .photo-grid a:focus-visible { box-shadow: 0 0 0 var(--b) var(--accent); outline-offset: 2px; }
+.album-description { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 70ch; }
+.crumbs { margin: 0 0 10px; font-size: 15px; }
+.upload-form { margin-top: 20px; padding-top: 4px; border-top: var(--b) solid var(--face-lo); }
+.upload-form input[type="file"] { padding: 10px; }
+.manage { margin-top: 20px; padding: 10px 12px; background: var(--face-hi); box-shadow: inset 0 0 0 1px var(--face-lo); }
+.manage summary { cursor: pointer; font-weight: 700; }
+.photo-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; font-size: 15px; }
+.photo-steps { display: flex; gap: 8px; }
+.photo-large { margin: 0 0 14px; }
+.photo-large img { display: block; max-width: 100%; height: auto; max-height: 80vh; width: auto; margin: 0 auto; background: var(--edge); box-shadow: 0 0 0 var(--b) var(--edge); image-rendering: auto; }
+.photo-large figcaption { margin-top: 8px; text-align: center; }
 
 /* ---------- Disclaimer (modal uden JavaScript) ---------- */
 .modal-backdrop {
@@ -350,6 +387,8 @@ code { font-family: ui-monospace, "Courier New", monospace; font-size: 15px; }
     .cal-week { width: 2.4em; }
     .cal-nav-label { display: none; }
     .event summary { grid-template-columns: 1fr; gap: 0; }
+    .event-rsvp { justify-self: start; }
+    .rsvp-lists { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {

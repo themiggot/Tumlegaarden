@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -9,8 +8,7 @@ using Tumlegaarden.Web.Security;
 
 namespace Tumlegaarden.Web.Pages.Events;
 
-/// <summary>Opret, rediger og slet begivenheder. Diktatorer: egne. Administratorer: alle. Børlere: kun læse.</summary>
-[Authorize(Policy = Policies.DiktatorOrHigher)]
+/// <summary>Opret, rediger og slet begivenheder. Alle opretter og retter egne; diktatorer og administratorer retter alle.</summary>
 public class EditModel(AppDbContext db, UserManager<IdentityUser> userManager, TimeProvider time, ILogger<EditModel> logger) : PageModel
 {
     [BindProperty] public InputModel Input { get; set; } = new();
@@ -114,7 +112,7 @@ public class EditModel(AppDbContext db, UserManager<IdentityUser> userManager, T
         return RedirectToPage("/Index", new { m = ev.StartsAt.ToString("yyyy-MM", CultureInfo.InvariantCulture) });
     }
 
-    private bool CanEdit(CalendarEvent ev) => User.IsInRole(Roles.Administrator) || ev.CreatedById == userManager.GetUserId(User);
+    private bool CanEdit(CalendarEvent ev) => Roles.IsModerator(User) || ev.CreatedById == userManager.GetUserId(User);
 
     private RedirectResult BackToCalendar(CalendarEvent ev) =>
         Redirect($"{Url.Page("/Index", new { m = ev.StartsAt.ToString("yyyy-MM", CultureInfo.InvariantCulture), e = ev.Id })}#e-{ev.Id}");

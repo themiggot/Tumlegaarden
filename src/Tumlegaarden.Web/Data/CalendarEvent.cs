@@ -14,6 +14,8 @@ public sealed class CalendarEvent
     public DateTime CreatedUtc { get; set; }
     public DateTime? UpdatedUtc { get; set; }
 
+    public List<EventResponse> Responses { get; set; } = [];
+
     public const int TitleMaxLength = 100;
     public const int BodyMaxLength = 4000;
 }

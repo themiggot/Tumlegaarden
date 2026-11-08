@@ -15,7 +15,9 @@ Simply.com:
 ├── tumlegaarden-logs/    ← log fra sitet. Oprettes automatisk, én fil pr. opstart.
 ├── tumlegaarden-data/    ← hemmeligheder og data. Røres aldrig af importen.
 │   ├── appsettings.Production.json   (du opretter den, trin 3)
-│   └── keys/                         (oprettes af sitet: nøgler til login-cookies)
+│   ├── keys/                         (oprettes af sitet: nøgler til login-cookies)
+│   ├── albums/                       (oprettes af sitet: billeder fra albums)
+│   └── tmp/                          (oprettes af sitet: midlertidige filer under upload)
 └── tumlegaarden-shadow/  ← oprettes af IIS: kopien af appen, der rent faktisk kører
 ```
 
@@ -135,6 +137,7 @@ Ser du noget andet end login-siden, så gå til afsnit 9.
 - [ ] `http://tumlegaarden.dk` sender videre til `https://`.
 - [ ] Ved første besøg vises pop-uppen **Privat side**, og den forsvinder efter **OK, forstået**.
 - [ ] Efter login vises kalenderen, og en ny begivenhed kan oprettes og foldes ud.
+- [ ] Et billede kan uploades til et album og vises bagefter. Mappen `/tumlegaarden-data/albums` er oprettet.
 - [ ] Siden kan **ikke** åbnes via en udenlandsk VPN (du ser "Ingen adgang"). Tjek også loggen: `Landefilter: kun Danmark (… adresseintervaller)`.
 - [ ] Mappen `/tumlegaarden-data/keys` findes.
 - [ ] Administrator-invitationen kom frem, og to-faktor virker.
@@ -159,7 +162,7 @@ Ser du noget andet end login-siden, så gå til afsnit 9.
 2. Kør **Importer fra Git**.
 3. Slet `app_offline.htm`, hvis den stadig ligger der.
 
-Rør aldrig `/tumlegaarden-data`. Slettes `keys`, bliver alle logget ud. Slettes `appsettings.Production.json`, kan sitet ikke nå databasen.
+Rør aldrig `/tumlegaarden-data`. Slettes `keys`, bliver alle logget ud. Slettes `appsettings.Production.json`, kan sitet ikke nå databasen. Slettes `albums`, forsvinder alle billeder.
 
 ---
 
@@ -207,6 +210,9 @@ De første linjer i loggen viser:
 | "Ingen adgang – kun danske IP-adresser", men du er i Danmark | VPN, iCloud Privat Relay, eller adressen mangler i listen | Slå VPN/Privat Relay fra. Hjælper det ikke, så tilføj din adresse (står på siden) under `AllowedIpRanges` (afsnit 8a). |
 | Alle får "Ingen adgang" | Listen over danske adresser mangler i pakken | Loggen siger `Listen over danske IP-adresser mangler`. Brug nødstoppet i afsnit 8a, og giv udvikleren besked. |
 | Loggen advarer om "lokal/privat IP" | Sitet står bag en proxy hos Simply, så landefilteret ser proxyens adresse | Filteret lukker så alle igennem. Giv udvikleren besked, så den rigtige klientadresse kan læses fra proxyen. |
+| Upload af billeder fejler med **HTTP 413** eller "404.13" | Forespørgslen er større end IIS tillader | `web.config` tillader 200 MB under `/Albums`. Upload færre billeder ad gangen. Hjælper det ikke, så spørg Simply, om de har en lavere grænse. |
+| Upload fejler, og loggen nævner `tmp` eller adgang nægtet | Sitet kan ikke skrive i `/tumlegaarden-data/tmp` eller `albums` | Tjek at app-poolen har skriveadgang til `/tumlegaarden-data` (den kan skrive `keys`, så det burde virke). |
+| Pladsen på webhotellet løber tør | Billederne fylder | Albumsiden viser, hvor meget billederne bruger. Slet gamle albums, eller udvid pladsen hos Simply. |
 | "For mange forsøg" | Rate limiting: maks. 30 loginforsøg pr. minut pr. IP | Vent et minut. |
 | Brugeren har mistet telefon og gendannelseskoder | | En administrator vælger **Nulstil 2FA** under Brugere. |
 
@@ -244,7 +250,7 @@ Trin 2–3 (Simply-forberedelse og datamappe) gælder også her.
 ## 11. Backup og sikkerhed
 
 - **Database:** Tag jævnligt backup af MySQL-databasen via kontrolpanelet. Se også **Website → Genskab data**.
-- **`/tumlegaarden-data`:** Tag backup af hele mappen sammen med databasen.
+- **`/tumlegaarden-data`:** Tag backup af hele mappen sammen med databasen. Den indeholder også alle billeder fra albums (`albums/`), og de findes ingen andre steder.
 - **Hemmeligheder:** `appsettings.Production.json` findes kun i `/tumlegaarden-data` og hos dig. Læg den aldrig på GitHub eller i mails. Skift adgangskoderne, hvis den slipper ud.
 - **Repoet er offentligt.** Læg aldrig adgangskoder, forbindelsesstrenge eller persondata i repoet. GitHub Actions tjekker, at `appsettings.Production.json` ikke kommer med i pakken.
 - **Administratorer:** Hav altid mindst to administratorer, så en mistet telefon ikke låser alle ude.

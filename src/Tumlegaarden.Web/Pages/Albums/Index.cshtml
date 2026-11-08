@@ -1,0 +1,53 @@
+@page
+@model Tumlegaarden.Web.Pages.Albums.IndexModel
+@{
+    ViewData["Title"] = "Albums";
+}
+<section class="window window-wide">
+    <h2 class="window-title">Albums</h2>
+    <div class="window-body">
+        @if (Model.Albums.Count == 0)
+        {
+            <p class="hint">Der er ingen albums endnu. Opret det første nedenfor.</p>
+        }
+        else
+        {
+            <ul class="album-grid">
+                @foreach (var a in Model.Albums)
+                {
+                    <li>
+                        <a class="album-card" asp-page="/Albums/Album" asp-route-id="@a.Id">
+                            @if (a.CoverId is int cover)
+                            {
+                                <img src="/Albums/Image/@cover/thumb" alt="" width="400" height="400" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span class="album-empty" aria-hidden="true">Tomt</span>
+                            }
+                            <span class="album-title">@a.Title</span>
+                            <span class="album-meta">@a.Count @(a.Count == 1 ? "billede" : "billeder") · @a.CreatedByEmail.Split('@')[0]</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+        <p class="hint">Brugt plads til billeder: @Tumlegaarden.Web.Pages.Albums.IndexModel.FormatBytes(Model.UsedBytes)</p>
+    </div>
+</section>
+
+<section class="window">
+    <h2 class="window-title">Nyt album</h2>
+    <div class="window-body">
+        <form method="post" asp-page-handler="Create" novalidate>
+            <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
+            <label asp-for="Input.Title">Navn</label>
+            <input asp-for="Input.Title" maxlength="100" />
+            <span asp-validation-for="Input.Title" class="field-err"></span>
+            <label asp-for="Input.Description">Beskrivelse (valgfri)</label>
+            <textarea asp-for="Input.Description" rows="3" maxlength="1000"></textarea>
+            <span asp-validation-for="Input.Description" class="field-err"></span>
+            <div class="actions"><button type="submit" class="btn btn-primary">Opret album</button></div>
+        </form>
+    </div>
+</section>

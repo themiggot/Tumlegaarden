@@ -6,6 +6,8 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 ## Funktioner
 
 - **Kalender** som forside efter login. Begivenheder har dato, tidspunkt (eller hele dagen), navn og brødtekst, ligger i tabellen `Events` og foldes ud ved klik (HTML `<details>`, ingen JavaScript).
+- **Deltagelse:** alle kan svare *Deltager* eller *Deltager ikke* på en begivenhed (tabellen `EventResponses`). Samme knap igen fjerner svaret.
+- **Albums:** alle kan oprette albums og uploade billeder (JPEG, PNG, WebP, GIF). Billederne kodes om med [ImageSharp](https://github.com/SixLabors/ImageSharp): orientering rettes, GPS og andre metadata fjernes, og der gemmes en version på højst 2048 px plus en miniature. Filerne ligger i `/tumlegaarden-data/albums` uden for web-mappen og udleveres kun til brugere, der er logget ind.
 - **Disclaimer** ved første besøg: privat side uden kommercielle interesser, kun for inviterede. Skal bekræftes med OK. Indeholder også cookie-informationen.
 - **Kun adgang fra Danmark** (IP-filter på alle sider). Se [DEPLOY.md](DEPLOY.md#8a-kun-adgang-fra-danmark).
 - **Login** kun for `@tumlegaarden.dk`, kun via invitation, obligatorisk to-faktor.
@@ -14,9 +16,11 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 
 | Niveau | Rettigheder |
 |---|---|
-| **Administrator** | Alt. Inviterer brugere, ændrer niveau, låser, nulstiller to-faktor og sletter. Kan rette og slette alle begivenheder. |
-| **Diktator** | Kan oprette begivenheder og rette/slette sine egne. |
-| **Børler** | Kan se kalenderen og læse begivenheder. |
+| **Administrator** | Alt. Eneste der kan invitere nye brugere. Kan redigere alle andre brugere og tildele alle niveauer. |
+| **Diktator** | Kan redigere børlere (niveau, lås, nulstil to-faktor, slet) og gøre dem til diktator. Kan rette og slette alle begivenheder, albums og billeder. |
+| **Børler** | Kan oprette begivenheder og albums, uploade billeder og rette/slette sit eget indhold. |
+
+Alle kan se kalenderen, albums og brugerlisten og svare på begivenheder. Ingen kan redigere sig selv på brugersiden.
 
 Man kan **ikke** oprette sig selv. En konto oprettes kun via et engangs-invitationslink, som en administrator sender fra siden *Brugere*.
 Linket udløber efter 72 timer, kan kun bruges én gang, og kun en SHA-256-hash af det gemmes i databasen.
@@ -63,7 +67,14 @@ Den er kun til at teste. Den rigtige sikkerhed ligger i ASP.NET-projektet.
 dotnet test tests/Tumlegaarden.Tests
 ```
 
-Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data) og domænekontrollen af e-mails. Kører også ved hvert byg på GitHub.
+Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data), domænekontrollen af e-mails og rangreglerne for redigering af brugere. Kører også ved hvert byg på GitHub.
+
+## Tredjepartskomponenter
+
+- **ImageSharp 3.1** (Six Labors Split License): gratis under Apache 2.0 for private og ikke-kommercielle brugere og for open source. Version 4 kræver en licensnøgle og bruges derfor ikke.
+- **MailKit**, **QRCoder**, **MySql.EntityFrameworkCore**: MIT/GPL-kompatible open source-licenser.
+- **Skrifttyper:** DotGothic16 og Silkscreen (SIL Open Font License), ligger i `wwwroot/fonts`.
+- **IP-data:** NRO via ip-location-db (CC BY 4.0), se `GeoData/LICENSE-NRO.txt`.
 
 ## Kør lokalt
 

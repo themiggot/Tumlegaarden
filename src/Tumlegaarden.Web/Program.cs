@@ -23,6 +23,13 @@ var appData = DataDirectory.Resolve(builder.Configuration, builder.Environment);
 Directory.CreateDirectory(appData);
 builder.Configuration.AddJsonFile(Path.Combine(appData, "appsettings.Production.json"), optional: true, reloadOnChange: false);
 
+// Uploads bufres i datamappen frem for i serverens fælles temp-mappe.
+var paths = new AppPaths(appData);
+Directory.CreateDirectory(paths.Temp);
+Environment.SetEnvironmentVariable("ASPNETCORE_TEMP", paths.Temp);
+builder.Services.AddSingleton(paths);
+builder.Services.AddSingleton<PhotoStore>();
+
 // Database: MySQL (Simply.com), SQL Server eller – hvis intet er sat op – en SQLite-fil i App_Data.
 var mySql = builder.Configuration.GetConnectionString("MySql");
 var sqlServer = builder.Configuration.GetConnectionString("SqlServer");
@@ -153,7 +160,6 @@ builder.Services.AddRazorPages(o =>
 {
     o.Conventions.AddFolderApplicationModelConvention("/Account",
         m => m.EndpointMetadata.Add(new EnableRateLimitingAttribute("auth")));
-    o.Conventions.AuthorizeFolder("/Admin", Policies.Administrator);
 });
 builder.Services.Configure<CookieTempDataProviderOptions>(o =>
 {

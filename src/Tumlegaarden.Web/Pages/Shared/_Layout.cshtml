@@ -24,10 +24,8 @@
         {
             <nav class="topnav" aria-label="Hovedmenu">
                 <a asp-page="/Index">Kalender</a>
-                @if (role == Roles.Administrator)
-                {
-                    <a asp-page="/Admin/Users">Brugere</a>
-                }
+                <a asp-page="/Albums/Index">Albums</a>
+                <a asp-page="/Users">Brugere</a>
                 <span class="who">@User.Identity!.Name</span>
                 @if (role is not null)
                 {
