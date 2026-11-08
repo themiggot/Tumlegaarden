@@ -16,7 +16,8 @@ namespace Tumlegaarden.Web.Services;
 /// </summary>
 public sealed class PhotoStore(AppPaths paths)
 {
-    public const long MaxFileBytes = 25 * 1024 * 1024;
+    /// <summary>Højeste værdi en administrator kan vælge for maks. billedstørrelse.</summary>
+    public const int MaxAllowedMegabytes = 25;
     public const int MaxFilesPerUpload = 30;
     public const long MaxRequestBytes = 200 * 1024 * 1024;
     private const long MaxPixels = 50_000_000;

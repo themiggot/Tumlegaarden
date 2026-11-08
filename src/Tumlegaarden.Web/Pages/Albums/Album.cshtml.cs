@@ -15,12 +15,14 @@ namespace Tumlegaarden.Web.Pages.Albums;
 /// </summary>
 [RequestSizeLimit(PhotoStore.MaxRequestBytes)]
 [RequestFormLimits(MultipartBodyLengthLimit = PhotoStore.MaxRequestBytes)]
-public class AlbumModel(AppDbContext db, UserManager<IdentityUser> userManager, PhotoStore store, TimeProvider time, ILogger<AlbumModel> logger) : PageModel
+public class AlbumModel(AppDbContext db, UserManager<IdentityUser> userManager, PhotoStore store, SiteSettings settings, TimeProvider time, ILogger<AlbumModel> logger) : PageModel
 {
     public Album Album { get; private set; } = null!;
     [BindProperty] public EditInput Edit { get; set; } = new();
     public bool CanManage { get; private set; }
     public List<string> UploadErrors { get; private set; } = [];
+    /// <summary>Maks. størrelse pr. billede i MB – sættes af administratorer under Indstillinger.</summary>
+    public int MaxImageMegabytes { get; private set; }
 
     public sealed class EditInput
     {
@@ -53,11 +55,12 @@ public class AlbumModel(AppDbContext db, UserManager<IdentityUser> userManager, 
 
         var errors = new List<string>();
         var saved = 0;
+        var maxBytes = MaxImageMegabytes * 1024L * 1024;
         foreach (var file in files.Take(PhotoStore.MaxFilesPerUpload))
         {
             var name = Path.GetFileName(file.FileName);
             if (file.Length == 0) { errors.Add($"{name}: tom fil"); continue; }
-            if (file.Length > PhotoStore.MaxFileBytes) { errors.Add($"{name}: større end 25 MB"); continue; }
+            if (file.Length > maxBytes) { errors.Add($"{name}: større end {MaxImageMegabytes} MB"); continue; }
 
             try
             {
@@ -136,6 +139,7 @@ public class AlbumModel(AppDbContext db, UserManager<IdentityUser> userManager, 
         if (album is null) return false;
         Album = album;
         CanManage = Roles.IsModerator(User) || album.CreatedById == userManager.GetUserId(User);
+        MaxImageMegabytes = await settings.GetMaxImageMegabytesAsync();
         if (TempData.Peek("UploadErrors") is string e) UploadErrors = e.Split('\n').ToList();
         return true;
     }

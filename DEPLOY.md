@@ -210,7 +210,9 @@ De første linjer i loggen viser:
 | "Ingen adgang – kun danske IP-adresser", men du er i Danmark | VPN, iCloud Privat Relay, eller adressen mangler i listen | Slå VPN/Privat Relay fra. Hjælper det ikke, så tilføj din adresse (står på siden) under `AllowedIpRanges` (afsnit 8a). |
 | Alle får "Ingen adgang" | Listen over danske adresser mangler i pakken | Loggen siger `Listen over danske IP-adresser mangler`. Brug nødstoppet i afsnit 8a, og giv udvikleren besked. |
 | Loggen advarer om "lokal/privat IP" | Sitet står bag en proxy hos Simply, så landefilteret ser proxyens adresse | Filteret lukker så alle igennem. Giv udvikleren besked, så den rigtige klientadresse kan læses fra proxyen. |
-| Upload af billeder fejler med **HTTP 413** eller "404.13" | Forespørgslen er større end IIS tillader | `web.config` tillader 200 MB under `/Albums`. Upload færre billeder ad gangen. Hjælper det ikke, så spørg Simply, om de har en lavere grænse. |
+| Upload af billeder fejler med **HTTP 413** eller "404.13" | Forespørgslen er større end IIS tillader | `web.config` tillader 200 MB pr. forespørgsel. Upload færre billeder ad gangen. Hjælper det ikke, så spørg Simply, om de har en lavere grænse. |
+| Billeder afvises med "større end 5 MB" | Grænsen pr. billede | En administrator kan ændre den under **Indstillinger** (1–25 MB, standard 5 MB). |
+| `/Albums` giver IIS-fejlen **HTTP 404.0** med handler `StaticFile` | `web.config` har en ekstra `<location path="…">`-blok, som fjerner ASP.NET for stien | Rettet i koden. Workflowet stopper nu bygget, hvis det sker igen. Importér seneste version. |
 | Upload fejler, og loggen nævner `tmp` eller adgang nægtet | Sitet kan ikke skrive i `/tumlegaarden-data/tmp` eller `albums` | Tjek at app-poolen har skriveadgang til `/tumlegaarden-data` (den kan skrive `keys`, så det burde virke). |
 | Pladsen på webhotellet løber tør | Billederne fylder | Albumsiden viser, hvor meget billederne bruger. Slet gamle albums, eller udvid pladsen hos Simply. |
 | "For mange forsøg" | Rate limiting: maks. 30 loginforsøg pr. minut pr. IP | Vent et minut. |

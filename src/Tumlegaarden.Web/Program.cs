@@ -29,6 +29,7 @@ Directory.CreateDirectory(paths.Temp);
 Environment.SetEnvironmentVariable("ASPNETCORE_TEMP", paths.Temp);
 builder.Services.AddSingleton(paths);
 builder.Services.AddSingleton<PhotoStore>();
+builder.Services.AddScoped<SiteSettings>();
 
 // Database: MySQL (Simply.com), SQL Server eller – hvis intet er sat op – en SQLite-fil i App_Data.
 var mySql = builder.Configuration.GetConnectionString("MySql");
@@ -213,6 +214,15 @@ app.Use(async (ctx, next) =>
         return Task.CompletedTask;
     });
     await next();
+});
+
+// Forespørgsler må højst være 1 MB. Billed-upload hæver grænsen for sin egen side ([RequestSizeLimit]).
+// Virker både på IIS (hvor web.config tillader 200 MB) og Kestrel.
+app.Use((ctx, next) =>
+{
+    if (ctx.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } limit)
+        limit.MaxRequestBodySize = 1024 * 1024;
+    return next(ctx);
 });
 
 app.UseStaticFiles(new StaticFileOptions

@@ -7,7 +7,7 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 
 - **Kalender** som forside efter login. Begivenheder har dato, tidspunkt (eller hele dagen), navn og brødtekst, ligger i tabellen `Events` og foldes ud ved klik (HTML `<details>`, ingen JavaScript).
 - **Deltagelse:** alle kan svare *Deltager* eller *Deltager ikke* på en begivenhed (tabellen `EventResponses`). Samme knap igen fjerner svaret.
-- **Albums:** alle kan oprette albums og uploade billeder (JPEG, PNG, WebP, GIF). Billederne kodes om med [ImageSharp](https://github.com/SixLabors/ImageSharp): orientering rettes, GPS og andre metadata fjernes, og der gemmes en version på højst 2048 px plus en miniature. Filerne ligger i `/tumlegaarden-data/albums` uden for web-mappen og udleveres kun til brugere, der er logget ind.
+- **Albums:** alle kan oprette albums og uploade billeder (JPEG, PNG, WebP, GIF). Billederne kodes om med [ImageSharp](https://github.com/SixLabors/ImageSharp): orientering rettes, GPS og andre metadata fjernes, og der gemmes en version på højst 2048 px plus en miniature. Filerne ligger i `/tumlegaarden-data/albums` uden for web-mappen og udleveres kun til brugere, der er logget ind. Maks. størrelse pr. billede (standard 5 MB) styres af administratorer under **Indstillinger** (tabellen `Settings`).
 - **Disclaimer** ved første besøg: privat side uden kommercielle interesser, kun for inviterede. Skal bekræftes med OK. Indeholder også cookie-informationen.
 - **Kun adgang fra Danmark** (IP-filter på alle sider). Se [DEPLOY.md](DEPLOY.md#8a-kun-adgang-fra-danmark).
 - **Login** kun for `@tumlegaarden.dk`, kun via invitation, obligatorisk to-faktor.
@@ -16,7 +16,7 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 
 | Niveau | Rettigheder |
 |---|---|
-| **Administrator** | Alt. Eneste der kan invitere nye brugere. Kan redigere alle andre brugere og tildele alle niveauer. |
+| **Administrator** | Alt. Eneste der kan invitere nye brugere og ændre **Indstillinger**. Kan redigere alle andre brugere og tildele alle niveauer. |
 | **Diktator** | Kan redigere børlere (niveau, lås, nulstil to-faktor, slet) og gøre dem til diktator. Kan rette og slette alle begivenheder, albums og billeder. |
 | **Børler** | Kan oprette begivenheder og albums, uploade billeder og rette/slette sit eget indhold. |
 

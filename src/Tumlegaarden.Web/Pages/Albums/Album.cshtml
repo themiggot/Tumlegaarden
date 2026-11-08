@@ -45,7 +45,7 @@
             <h3>Upload billeder</h3>
             <label for="files">Vælg billeder</label>
             <input id="files" name="files" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" required />
-            <p class="hint">JPEG, PNG, WebP eller GIF. Højst @PhotoStore.MaxFilesPerUpload billeder ad gangen og 25 MB pr. billede. Billederne gemmes i højst 2048 px, og GPS-position og andre metadata fjernes. Upload kan tage lidt tid.</p>
+            <p class="hint">JPEG, PNG, WebP eller GIF. Højst @PhotoStore.MaxFilesPerUpload billeder ad gangen og <strong>@Model.MaxImageMegabytes MB pr. billede</strong>. Billederne gemmes i højst 2048 px, og GPS-position og andre metadata fjernes. Upload kan tage lidt tid.</p>
             <div class="actions"><button type="submit" class="btn btn-primary">Upload</button></div>
         </form>
 

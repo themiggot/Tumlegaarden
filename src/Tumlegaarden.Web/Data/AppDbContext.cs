@@ -12,6 +12,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<EventResponse> EventResponses => Set<EventResponse>();
     public DbSet<Album> Albums => Set<Album>();
     public DbSet<Photo> Photos => Set<Photo>();
+    public DbSet<SiteSetting> Settings => Set<SiteSetting>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -68,6 +69,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             e.Property(x => x.OriginalName).HasMaxLength(255);
             e.Property(x => x.UploadedById).HasMaxLength(255);
             e.Property(x => x.UploadedByEmail).HasMaxLength(256);
+        });
+
+        builder.Entity<SiteSetting>(e =>
+        {
+            e.ToTable("Settings");
+            e.HasKey(x => x.Key);
+            e.Property(x => x.Key).HasMaxLength(100);
+            e.Property(x => x.Value).HasMaxLength(1000);
+            e.Property(x => x.UpdatedBy).HasMaxLength(256);
         });
 
         builder.Entity<Invitation>(e =>
