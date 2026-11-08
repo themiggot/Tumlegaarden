@@ -1,0 +1,116 @@
+@page
+@model CalendarModel
+@{
+    ViewData["Title"] = "Kalender";
+    var dayNames = new[] { "Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn" };
+}
+<section class="window window-wide">
+    <h2 class="window-title">Kalender</h2>
+    <div class="window-body">
+        <div class="cal-head">
+            <a class="btn btn-small" asp-page="/Calendar" asp-route-m="@Model.MonthKey(Model.Month.AddMonths(-1))" aria-label="Forrige måned">&lsaquo;<span class="cal-nav-label"> Forrige</span></a>
+            <h3 class="cal-month">@Model.MonthTitle</h3>
+            <a class="btn btn-small" asp-page="/Calendar" asp-route-m="@Model.MonthKey(Model.Month.AddMonths(1))" aria-label="Næste måned"><span class="cal-nav-label">Næste </span>&rsaquo;</a>
+        </div>
+        <div class="cal-tools">
+            @if (Model.Month.Year != Model.Today.Year || Model.Month.Month != Model.Today.Month)
+            {
+                <a asp-page="/Calendar">I dag</a>
+            }
+            @if (Model.CanCreate)
+            {
+                <a class="btn btn-primary btn-small" asp-page="/Events/Edit" asp-route-date="@(Model.Month.Month == Model.Today.Month && Model.Month.Year == Model.Today.Year ? Model.Today.ToString("yyyy-MM-dd") : Model.Month.ToString("yyyy-MM-dd"))">Ny begivenhed</a>
+            }
+        </div>
+
+        <div class="cal-wrap">
+            <table class="cal">
+                <caption class="sr-only">@Model.MonthTitle</caption>
+                <thead>
+                    <tr><th class="cal-week" scope="col"><abbr title="Uge">Uge</abbr></th>@foreach (var d in dayNames) { <th scope="col">@d</th> }</tr>
+                </thead>
+                <tbody>
+                    @foreach (var (week, days) in Model.Weeks())
+                    {
+                        <tr>
+                            <th class="cal-week" scope="row">@week</th>
+                            @foreach (var day in days)
+                            {
+                                var outside = day.Month != Model.Month.Month;
+                                var classes = "cal-day" + (outside ? " cal-outside" : "") + (day == Model.Today ? " cal-today" : "") + (day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? " cal-weekend" : "");
+                                <td class="@classes">
+                                    <span class="cal-date">@day.Day</span>
+                                    @if (!outside)
+                                    {
+                                        foreach (var ev in Model.On(day))
+                                        {
+                                            var (chipTime, continues) = CalendarModel.ChipFor(ev, day);
+                                            <a class="cal-chip@(ev.IsMultiDay ? " cal-chip-multi" : "")@(continues ? " cal-chip-cont" : "")" href="?m=@Model.MonthKey(Model.Month)&amp;e=@ev.Id#e-@ev.Id" title="@CalendarModel.DateText(ev) @CalendarModel.TimeText(ev): @ev.Title">
+                                                @if (continues) { <span class="cal-chip-time" aria-hidden="true">&rarr;</span> }
+                                                else if (chipTime is not null) { <span class="cal-chip-time">@chipTime</span> }
+                                                <span class="cal-chip-title">@ev.Title</span>
+                                            </a>
+                                        }
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="window window-wide">
+    <h2 class="window-title">Begivenheder i @Model.Month.ToString("MMMM", Model.Culture)</h2>
+    <div class="window-body">
+        @if (Model.Events.Count == 0)
+        {
+            <p class="hint">Ingen begivenheder i @Model.Month.ToString("MMMM", Model.Culture). Klik på Ny begivenhed for at tilføje den første.</p>
+        }
+        else
+        {
+            <div class="events">
+                @foreach (var ev in Model.Events)
+                {
+                    <details class="event" id="e-@ev.Id" open="@(Model.OpenId == ev.Id)">
+                        <summary>
+                            <span class="event-date">@CalendarModel.DateText(ev)</span>
+                            <span class="event-time">@CalendarModel.TimeText(ev)</span>
+                            <span class="event-title">@ev.Title</span>
+                            <span class="event-rsvp">
+                                @{ var going = ev.Responses.Count(r => r.Attending); var mine = Model.MyAnswer(ev); }
+                                @if (mine == true) { <span class="tag tag-ok">Du deltager</span> }
+                                else if (mine == false) { <span class="tag tag-muted">Deltager ikke</span> }
+                                <span class="rsvp-count" title="@going deltager">@going deltager</span>
+                            </span>
+                        </summary>
+                        <div class="event-content">
+                            @if (!string.IsNullOrWhiteSpace(ev.Body))
+                            {
+                                <div class="event-body">@ev.Body</div>
+                            }
+                            @{ var yes = ev.Responses.Where(r => r.Attending).OrderBy(r => r.UserEmail).ToList(); var no = ev.Responses.Where(r => !r.Attending).OrderBy(r => r.UserEmail).ToList(); var my = Model.MyAnswer(ev); }
+                            <form method="post" asp-page-handler="Respond" asp-route-id="@ev.Id" asp-route-m="@Model.MonthKey(Model.Month)" class="rsvp">
+                                <button type="submit" name="attending" value="true" class="btn btn-small @(my == true ? "btn-on" : "")" aria-pressed="@(my == true ? "true" : "false")">Deltager</button>
+                                <button type="submit" name="attending" value="false" class="btn btn-small @(my == false ? "btn-on" : "")" aria-pressed="@(my == false ? "true" : "false")">Deltager ikke</button>
+                            </form>
+                            <dl class="rsvp-lists">
+                                <dt>Deltager (@yes.Count)</dt>
+                                <dd>@(yes.Count == 0 ? "Ingen endnu" : string.Join(", ", yes.Select(r => r.DisplayName)))</dd>
+                                <dt>Deltager ikke (@no.Count)</dt>
+                                <dd>@(no.Count == 0 ? "Ingen" : string.Join(", ", no.Select(r => r.DisplayName)))</dd>
+                            </dl>
+                            <p class="hint">Oprettet af @ev.CreatedByEmail@(ev.UpdatedUtc is not null ? " · redigeret" : "")</p>
+                            @if (Model.CanEdit(ev))
+                            {
+                                <div class="actions"><a class="btn btn-small" asp-page="/Events/Edit" asp-route-id="@ev.Id">Rediger</a></div>
+                            }
+                        </div>
+                    </details>
+                }
+            </div>
+        }
+    </div>
+</section>

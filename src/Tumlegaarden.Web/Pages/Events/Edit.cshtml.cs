@@ -140,11 +140,11 @@ public class EditModel(AppDbContext db, UserManager<IdentityUser> userManager, T
         await db.SaveChangesAsync();
         logger.LogInformation("{User} slettede begivenhed {Id}.", User.Identity?.Name, id);
         TempData["Status"] = $"\"{ev.Title}\" er slettet.";
-        return RedirectToPage("/Index", new { m = ev.StartsAt.ToString("yyyy-MM", CultureInfo.InvariantCulture) });
+        return RedirectToPage("/Calendar", new { m = ev.StartsAt.ToString("yyyy-MM", CultureInfo.InvariantCulture) });
     }
 
     private bool CanEdit(CalendarEvent ev) => Roles.IsModerator(User) || ev.CreatedById == userManager.GetUserId(User);
 
     private RedirectResult BackToCalendar(CalendarEvent ev) =>
-        Redirect($"{Url.Page("/Index", new { m = ev.StartsAt.ToString("yyyy-MM", CultureInfo.InvariantCulture), e = ev.Id })}#e-{ev.Id}");
+        Redirect($"{Url.Page("/Calendar", new { m = ev.StartsAt.ToString("yyyy-MM", CultureInfo.InvariantCulture), e = ev.Id })}#e-{ev.Id}");
 }

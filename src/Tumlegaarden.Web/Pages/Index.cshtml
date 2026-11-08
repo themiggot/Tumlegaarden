@@ -1,116 +1,54 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "Kalender";
-    var dayNames = new[] { "Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn" };
+    ViewData["Title"] = "Velkommen";
 }
-<section class="window window-wide">
-    <h2 class="window-title">Kalender</h2>
+<section class="window home">
+    <h2 class="window-title">Velkommen</h2>
     <div class="window-body">
-        <div class="cal-head">
-            <a class="btn btn-small" asp-page="/Index" asp-route-m="@Model.MonthKey(Model.Month.AddMonths(-1))" aria-label="Forrige måned">&lsaquo;<span class="cal-nav-label"> Forrige</span></a>
-            <h3 class="cal-month">@Model.MonthTitle</h3>
-            <a class="btn btn-small" asp-page="/Index" asp-route-m="@Model.MonthKey(Model.Month.AddMonths(1))" aria-label="Næste måned"><span class="cal-nav-label">Næste </span>&rsaquo;</a>
-        </div>
-        <div class="cal-tools">
-            @if (Model.Month.Year != Model.Today.Year || Model.Month.Month != Model.Today.Month)
-            {
-                <a asp-page="/Index">I dag</a>
-            }
-            @if (Model.CanCreate)
-            {
-                <a class="btn btn-primary btn-small" asp-page="/Events/Edit" asp-route-date="@(Model.Month.Month == Model.Today.Month && Model.Month.Year == Model.Today.Year ? Model.Today.ToString("yyyy-MM-dd") : Model.Month.ToString("yyyy-MM-dd"))">Ny begivenhed</a>
-            }
-        </div>
+        <h2 class="home-title">Tumlegaarden <span class="home-dash">–</span> <span class="home-sub">Det online paradis</span></h2>
 
-        <div class="cal-wrap">
-            <table class="cal">
-                <caption class="sr-only">@Model.MonthTitle</caption>
-                <thead>
-                    <tr><th class="cal-week" scope="col"><abbr title="Uge">Uge</abbr></th>@foreach (var d in dayNames) { <th scope="col">@d</th> }</tr>
-                </thead>
-                <tbody>
-                    @foreach (var (week, days) in Model.Weeks())
-                    {
-                        <tr>
-                            <th class="cal-week" scope="row">@week</th>
-                            @foreach (var day in days)
-                            {
-                                var outside = day.Month != Model.Month.Month;
-                                var classes = "cal-day" + (outside ? " cal-outside" : "") + (day == Model.Today ? " cal-today" : "") + (day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? " cal-weekend" : "");
-                                <td class="@classes">
-                                    <span class="cal-date">@day.Day</span>
-                                    @if (!outside)
-                                    {
-                                        foreach (var ev in Model.On(day))
-                                        {
-                                            var (chipTime, continues) = IndexModel.ChipFor(ev, day);
-                                            <a class="cal-chip@(ev.IsMultiDay ? " cal-chip-multi" : "")@(continues ? " cal-chip-cont" : "")" href="?m=@Model.MonthKey(Model.Month)&amp;e=@ev.Id#e-@ev.Id" title="@IndexModel.DateText(ev) @IndexModel.TimeText(ev): @ev.Title">
-                                                @if (continues) { <span class="cal-chip-time" aria-hidden="true">&rarr;</span> }
-                                                else if (chipTime is not null) { <span class="cal-chip-time">@chipTime</span> }
-                                                <span class="cal-chip-title">@ev.Title</span>
-                                            </a>
-                                        }
-                                    }
-                                </td>
-                            }
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section>
+        <p class="home-game"><span class="home-game-label">Tumlegårdens officielle game</span> <strong>League of Legends</strong></p>
 
-<section class="window window-wide">
-    <h2 class="window-title">Begivenheder i @Model.Month.ToString("MMMM", Model.Culture)</h2>
-    <div class="window-body">
-        @if (Model.Events.Count == 0)
-        {
-            <p class="hint">Ingen begivenheder i @Model.Month.ToString("MMMM", Model.Culture). Klik på Ny begivenhed for at tilføje den første.</p>
-        }
-        else
-        {
-            <div class="events">
-                @foreach (var ev in Model.Events)
-                {
-                    <details class="event" id="e-@ev.Id" open="@(Model.OpenId == ev.Id)">
-                        <summary>
-                            <span class="event-date">@IndexModel.DateText(ev)</span>
-                            <span class="event-time">@IndexModel.TimeText(ev)</span>
-                            <span class="event-title">@ev.Title</span>
-                            <span class="event-rsvp">
-                                @{ var going = ev.Responses.Count(r => r.Attending); var mine = Model.MyAnswer(ev); }
-                                @if (mine == true) { <span class="tag tag-ok">Du deltager</span> }
-                                else if (mine == false) { <span class="tag tag-muted">Deltager ikke</span> }
-                                <span class="rsvp-count" title="@going deltager">@going deltager</span>
-                            </span>
-                        </summary>
-                        <div class="event-content">
-                            @if (!string.IsNullOrWhiteSpace(ev.Body))
-                            {
-                                <div class="event-body">@ev.Body</div>
-                            }
-                            @{ var yes = ev.Responses.Where(r => r.Attending).OrderBy(r => r.UserEmail).ToList(); var no = ev.Responses.Where(r => !r.Attending).OrderBy(r => r.UserEmail).ToList(); var my = Model.MyAnswer(ev); }
-                            <form method="post" asp-page-handler="Respond" asp-route-id="@ev.Id" asp-route-m="@Model.MonthKey(Model.Month)" class="rsvp">
-                                <button type="submit" name="attending" value="true" class="btn btn-small @(my == true ? "btn-on" : "")" aria-pressed="@(my == true ? "true" : "false")">Deltager</button>
-                                <button type="submit" name="attending" value="false" class="btn btn-small @(my == false ? "btn-on" : "")" aria-pressed="@(my == false ? "true" : "false")">Deltager ikke</button>
-                            </form>
-                            <dl class="rsvp-lists">
-                                <dt>Deltager (@yes.Count)</dt>
-                                <dd>@(yes.Count == 0 ? "Ingen endnu" : string.Join(", ", yes.Select(r => r.DisplayName)))</dd>
-                                <dt>Deltager ikke (@no.Count)</dt>
-                                <dd>@(no.Count == 0 ? "Ingen" : string.Join(", ", no.Select(r => r.DisplayName)))</dd>
-                            </dl>
-                            <p class="hint">Oprettet af @ev.CreatedByEmail@(ev.UpdatedUtc is not null ? " · redigeret" : "")</p>
-                            @if (Model.CanEdit(ev))
-                            {
-                                <div class="actions"><a class="btn btn-small" asp-page="/Events/Edit" asp-route-id="@ev.Id">Rediger</a></div>
-                            }
-                        </div>
-                    </details>
-                }
-            </div>
-        }
+        <article class="rules" aria-labelledby="rules-title">
+            <h3 id="rules-title">Reglementet i Tumlegården</h3>
+            <p class="hint">Gældende før 5. februar 2019</p>
+            <h4>Ændringer siden sidst</h4>
+
+            <ol class="rule-list">
+                <li><span class="para">§1</span><p>Du må gerne synge, hvis der ikke er nogen, der bliver irriteret.</p></li>
+                <li><span class="para">§2</span><p>Der må ikke spammes.</p></li>
+                <li><span class="para">§3</span><p>Hvis der spilles et spil, hvor der skal koncentreres, skal de andre give ro, så spillerne kan spille og høre lyde. Hvis et flertal af folkene i samtalen er ingame (på karaokedag og måske også andre dage), må der ikke synges i samtalen – så skal der være ro.</p></li>
+                <li><span class="para">§4</span><p>Der er ingen emner, der ikke må diskuteres (undtagen Emil, som skylder legendary skins til hele banden).</p></li>
+                <li><span class="para">§5</span><p>Der må ikke lukkes ned for andre uden en <strong>GOD</strong> grund.</p></li>
+                <li><span class="para">§6</span><p>Hvis der affyres skud på hinanden i CS:GO, tager man automatisk ansvaret for kampen, hvis den tabes (undtagen Lokke).</p></li>
+                <li><span class="para">§7</span><p>Diktatur er godt.</p></li>
+                @* §8 er ikke gengivet ordret: den oprindelige tekst indeholdt et racistisk skældsord. Ret selv teksten her, hvis I ønsker det. *@
+                <li><span class="para">§8</span><p>Jokes om rødhårede er tilladt.</p></li>
+                <li>
+                    <span class="para">§9</span><p>Spoiling er ikke tilladt – ellers vanker der flere dages straf, medmindre det ikke er et major spoil.</p>
+                    <ol class="rule-list rule-sub">
+                        <li><span class="para">§9.1</span><p>Der må ikke spoiles i spil, film og lignende, medmindre folk gerne vil snakke om det. Alle skal være enige – medmindre der er gået 3 dage, så må der gerne spoiles (man skal lige sige det, inden man begynder). Ældre ting må heller ikke spoiles, og sådan er det bare.</p></li>
+                        <li><span class="para">§9.2</span><p>Der må ikke trues med spoilers og sådan noget, for så er det bare ud. (Der skal heller ikke leges med ilden, if you know what I mean.)</p></li>
+                        <li><span class="para">§9.3</span><p>Hvis episoder er blevet leaket, før det egentlig var meningen, at de skulle være ude, må der ikke spoiles i perioden fra leaket til den egentlige udgivelsesdato + 3 dage.</p></li>
+                    </ol>
+                </li>
+                <li><span class="para">§10</span><p>Reglerne står over alle og må derfor ikke disses.</p></li>
+                <li><span class="para">§11</span><p>Du skal tro på dig selv.</p></li>
+                <li><span class="para">§12</span><p>Emil skal være support eller bare have den kedeligste rolle i det spil, der spilles.</p></li>
+                <li><span class="para">§13</span><p>Der må heller ikke spammes med oplæsning eller sange.</p></li>
+                <li><span class="para">§14</span><p>Der må heller ikke bruges stemmer eller oplæser, hvis andre ikke gider have det.</p></li>
+                <li><span class="para">§15</span><p>Du må fucking ikke ændre det fucking samtalenavn – ellers er det ud i en periode alt efter opførsel.</p></li>
+                <li><span class="para">§16</span><p>Hvis over halvdelen af medlemmerne er uenige, skal der være en ny leder!</p></li>
+                <li><span class="para">§17</span><p>Hvis du leaver, får du ban i en ubestemt periode (dem, der tilføjer personen igen, får også ban).</p></li>
+                <li><span class="para">§18</span><p>Fra i dag skal alle medlemmernes kærester, eller hvad man nu er, hedde <em>(navn)</em> C. Og sådan er det bare.</p></li>
+                <li><span class="para">§19</span><p>Hvis man smider folk ud af samtalen, skal man selv ud i en længere periode. Den store leder bestemmer, hvornår og hvor længe. Det er op til lederen at udpege, hvem der smed folk ud.</p></li>
+                <li><span class="para">§20</span><p>Man må ikke ændre andres navne i Facebook-chatten, medmindre man har fået lov af offeret eller den store leder.</p></li>
+                <li><span class="para">§21</span><p>Ved deltagelse i konkurrencer eller andre arrangementer under Tumlegårdens fane, hvor der indgår en aftalt prize pool, skal taberne betale den aftalte præmie pr. deltager ved opkrævning. Overtrædelse udløser 5 dages ban.</p></li>
+                <li><span class="para">§22</span><p>Hvis man stjæler nogle af OG'ernes farver på bilen i GTA, kan man sagtens forvente ban i alt fra 10 minutter til 24 timer.</p></li>
+            </ol>
+
+            <p class="rules-footer">Og så skylder Emil legendary skins til hele banden. <span>(Og vi venter stadig.)</span></p>
+        </article>
     </div>
 </section>
