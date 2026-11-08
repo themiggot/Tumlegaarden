@@ -179,10 +179,25 @@ Første linjer i loggen viser `Datamappe: …`. Det er mappen, sitet læser hemm
 | **HTTP 500.30** med databasefejl i loggen | Forkert forbindelsesstreng | Tjek server, bruger og adgangskode. Ved SSL-fejl: skift `SslMode=Required` til `SslMode=Preferred`. |
 | **HTTP 400 Bad Request – Invalid Hostname** | Sitet tilgås via en adresse, der ikke står i `AllowedHosts` | Tilføj adressen i `AllowedHosts` i `appsettings.Production.json`, fx `"AllowedHosts": "tumlegaarden.dk;www.tumlegaarden.dk;ny.adresse.dk"`. |
 | Ingen invitationsmail | SMTP-oplysninger forkerte, eller mailen er i spam | Læs loggen ("Kunne ikke sende"). Tjek trin 2c og 3. |
-| Kom aldrig nogen administrator-invitation | `Bootstrap:AdminEmail` mangler, eller der findes allerede en bruger | Sendes kun når databasen er tom. Ret filen og genstart ved at uploade `app_offline.htm` og slette den igen. |
+| Kom aldrig nogen administrator-invitation | Se afsnittet "Ingen administrator-invitation" nedenfor | |
 | Alle bliver logget ud efter hver opdatering | `keys` ligger i `public_html` i stedet for `/tumlegaarden-data` | Se rækken om datamappen ovenfor. |
 | "For mange forsøg" | Rate limiting: maks. 30 loginforsøg pr. minut pr. IP | Vent et minut. |
 | Brugeren har mistet telefon og gendannelseskoder | | En administrator vælger **Nulstil 2FA** under Brugere. |
+
+
+### Ingen administrator-invitation
+
+Invitationen sendes kun, når der **ingen brugere** findes. Den går til adressen i `Bootstrap:AdminEmail`, ikke automatisk til admin@.
+
+1. **Tjek `/tumlegaarden-data`:** Findes mappen `keys` derinde? Hvis ikke, har sitet ikke fundet datamappen og har ikke læst `appsettings.Production.json`. Tjek mappens navn og placering (ved siden af `public_html`).
+   Ligger der i stedet en mappe `App_Data` inde i `/public_html`, er det samme problem.
+2. **Tjek spam** i den indbakke, `Bootstrap:AdminEmail` peger på.
+3. **Slå loggen til** (se ovenfor) og genstart app-poolen. Loggen siger én af disse:
+   - `Administrator-invitation sendt til …`: mailen er afsendt. Tjek spam, og at adressen findes.
+   - `Kunne ikke sende administrator-invitation …`: SMTP-indstillingerne er forkerte. Ret dem i `appsettings.Production.json`. Der prøves igen ved næste start.
+   - `… blev sendt … Sendes igen ved en genstart efter 15 minutter`: en invitation er sendt for nylig. Vent 15 minutter og genstart app-poolen for at få en ny.
+   - `Ingen brugere og ingen gyldig Bootstrap:AdminEmail`: adressen mangler eller er ikke en @tumlegaarden.dk-adresse.
+4. Ændrer du `Bootstrap:AdminEmail`, sendes en ny invitation til den nye adresse ved næste genstart. Den gamle bliver ugyldig.
 
 ---
 

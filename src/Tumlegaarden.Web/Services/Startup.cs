@@ -41,7 +41,21 @@ public static class StartupTasks
         }
 
         var invitations = sp.GetRequiredService<InvitationService>();
-        if (await invitations.AnyPendingAsync()) return;
+        var now = sp.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime;
+        var pending = (await invitations.PendingAsync()).Where(i => i.CreatedBy == "system").ToList();
+
+        // Sendt for nylig til samme adresse: send ikke igen (undgår en mail ved hver genstart af app-poolen).
+        var recent = pending.FirstOrDefault(i =>
+            string.Equals(i.Email, email, StringComparison.OrdinalIgnoreCase) && now - i.CreatedUtc < BootstrapResendAfter);
+        if (recent is not null)
+        {
+            log.LogInformation("Administrator-invitation til {Email} blev sendt {Created:u}. Sendes igen ved en genstart efter {Minutes} minutter.",
+                email, recent.CreatedUtc, BootstrapResendAfter.TotalMinutes);
+            return;
+        }
+
+        // Ældre invitationer, eller til en anden adresse (konfigurationen er ændret), erstattes.
+        foreach (var old in pending) await invitations.RevokeAsync(old.Id);
 
         var token = await invitations.CreateAsync(email!, Roles.Administrator, "system");
         try
@@ -52,9 +66,14 @@ public static class StartupTasks
         }
         catch (Exception ex)
         {
-            log.LogError(ex, "Kunne ikke sende administrator-invitation.");
+            // Træk invitationen tilbage, så næste opstart prøver igen i stedet for at tro, den er sendt.
+            if (await invitations.FindValidAsync(token) is { } created) await invitations.RevokeAsync(created.Id);
+            log.LogError(ex, "Kunne ikke sende administrator-invitation til {Email}. Prøver igen ved næste opstart. Tjek Smtp-indstillingerne.", email);
         }
     }
+
+    /// <summary>Hvor længe en ubesvaret administrator-invitation gælder, før en genstart sender en ny.</summary>
+    private static readonly TimeSpan BootstrapResendAfter = TimeSpan.FromMinutes(15);
 }
 
 public static class InvitationMail
