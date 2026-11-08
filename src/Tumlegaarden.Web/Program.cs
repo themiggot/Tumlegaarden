@@ -30,6 +30,7 @@ Environment.SetEnvironmentVariable("ASPNETCORE_TEMP", paths.Temp);
 builder.Services.AddSingleton(paths);
 builder.Services.AddSingleton<PhotoStore>();
 builder.Services.AddScoped<SiteSettings>();
+builder.Services.AddScoped<ChatService>();
 
 // Database: MySQL (Simply.com), SQL Server eller – hvis intet er sat op – en SQLite-fil i App_Data.
 var mySql = builder.Configuration.GetConnectionString("MySql");
@@ -155,6 +156,12 @@ builder.Services.AddRateLimiter(o =>
             ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = permits, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 })
         : RateLimitPartition.GetNoLimiter("get"));
+    // Chat: højst 20 beskeder pr. minut pr. bruger.
+    o.AddPolicy("chat", ctx => HttpMethods.IsPost(ctx.Request.Method)
+        ? RateLimitPartition.GetFixedWindowLimiter(
+            ctx.User.Identity?.Name ?? ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 })
+        : RateLimitPartition.GetNoLimiter("chat-get"));
 });
 
 builder.Services.AddRazorPages(o =>
@@ -199,7 +206,7 @@ app.Use(async (ctx, next) =>
 {
     var h = ctx.Response.Headers;
     h["Content-Security-Policy"] =
-        "default-src 'none'; style-src 'self'; font-src 'self'; img-src 'self' data:; " +
+        "default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; " +
         "form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests";
     h["X-Content-Type-Options"] = "nosniff";
     h["X-Frame-Options"] = "DENY";
@@ -234,8 +241,8 @@ app.UseStaticFiles(new StaticFileOptions
 app.UseMiddleware<DenmarkOnlyMiddleware>();
 
 app.UseRouting();
-app.UseRateLimiter();
 app.UseAuthentication();
+app.UseRateLimiter();   // efter login, så chat-grænsen gælder pr. bruger
 app.UseAuthorization();
 
 app.MapRazorPages();

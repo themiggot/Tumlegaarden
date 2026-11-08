@@ -9,6 +9,7 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 - **Deltagelse:** alle kan svare *Deltager* eller *Deltager ikke* på en begivenhed (tabellen `EventResponses`). Samme knap igen fjerner svaret.
 - **Albums:** alle kan oprette albums og uploade billeder (JPEG, PNG, WebP, GIF). Billederne kodes om med [ImageSharp](https://github.com/SixLabors/ImageSharp): orientering rettes, GPS og andre metadata fjernes, og der gemmes en version på højst 2048 px plus en miniature. Filerne ligger i `/tumlegaarden-data/albums` uden for web-mappen og udleveres kun til brugere, der er logget ind. Maks. størrelse pr. billede (standard 5 MB) styres af administratorer under **Indstillinger** (tabellen `Settings`).
 - **Disclaimer** ved første besøg: privat side uden kommercielle interesser, kun for inviterede. Skal bekræftes med OK. Indeholder også cookie-informationen.
+- **Chat** nederst til højre på alle sider. Rummet "Alle" er for alle brugere. Diktatorer og administratorer opretter rum og vælger medlemmer på `/Chat/Rooms` og kan se alle rum. Uden JavaScript virker chatten som en almindelig side på `/Chat`.
 - **Kun adgang fra Danmark** (IP-filter på alle sider). Se [DEPLOY.md](DEPLOY.md#8a-kun-adgang-fra-danmark).
 - **Login** kun for `@tumlegaarden.dk`, kun via invitation, obligatorisk to-faktor.
 
@@ -17,7 +18,7 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 | Niveau | Rettigheder |
 |---|---|
 | **Administrator** | Alt. Eneste der kan invitere nye brugere og ændre **Indstillinger**. Kan redigere alle andre brugere og tildele alle niveauer. |
-| **Diktator** | Kan redigere børlere (niveau, lås, nulstil to-faktor, slet) og gøre dem til diktator. Kan rette og slette alle begivenheder, albums og billeder. |
+| **Diktator** | Kan oprette chatrum og vælge medlemmer, og se alle rum. Kan redigere børlere (niveau, lås, nulstil to-faktor, slet) og gøre dem til diktator. Kan rette og slette alle begivenheder, albums og billeder. |
 | **Børler** | Kan oprette begivenheder og albums, uploade billeder og rette/slette sit eget indhold. |
 
 Alle kan se kalenderen, albums og brugerlisten og svare på begivenheder. Ingen kan redigere sig selv på brugersiden.
@@ -60,6 +61,17 @@ kan der tilføjes rigtig SSO (OpenID Connect) med ganske få linjer i `Program.c
 `demo/tumlegaarden-demo.html` er en version af sitet, der kører helt i browseren (publiceret som artefakt i Claude), så flowet kan afprøves uden server.
 Den har samme regler, roller og tema, plus en indbakke og en authenticator, så man ikke behøver mailserver eller telefon.
 Den er kun til at teste. Den rigtige sikkerhed ligger i ASP.NET-projektet.
+
+## TypeScript (chatten)
+
+Sitet bruger kun JavaScript til chatboksen. Kilden er `src/Tumlegaarden.Web/Scripts/chat.ts`, og det byggede `wwwroot/js/chat.js` er committet, så `dotnet build` ikke kræver Node.
+
+```bash
+npm install
+npm run build:ts
+```
+
+GitHub Actions stopper bygget, hvis `chat.js` ikke passer til `chat.ts`. Chatboksen henter nye beskeder hvert 4. sekund, når den er åben, og ellers hvert 30. sekund for at vise markeringen for nye beskeder. Al tekst indsættes med `textContent`, og CSP tillader kun scripts fra sitet selv.
 
 ## Tests
 

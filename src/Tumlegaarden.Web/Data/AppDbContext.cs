@@ -13,6 +13,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Album> Albums => Set<Album>();
     public DbSet<Photo> Photos => Set<Photo>();
     public DbSet<SiteSetting> Settings => Set<SiteSetting>();
+    public DbSet<ChatRoom> ChatRooms => Set<ChatRoom>();
+    public DbSet<ChatRoomMember> ChatRoomMembers => Set<ChatRoomMember>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -78,6 +81,32 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             e.Property(x => x.Key).HasMaxLength(100);
             e.Property(x => x.Value).HasMaxLength(1000);
             e.Property(x => x.UpdatedBy).HasMaxLength(256);
+        });
+
+        builder.Entity<ChatRoom>(e =>
+        {
+            e.ToTable("ChatRooms");
+            e.Property(x => x.Name).HasMaxLength(ChatRoom.NameMaxLength).IsRequired();
+            e.Property(x => x.CreatedByEmail).HasMaxLength(256);
+        });
+
+        builder.Entity<ChatRoomMember>(e =>
+        {
+            e.ToTable("ChatRoomMembers");
+            e.HasKey(x => new { x.RoomId, x.UserId });
+            e.Property(x => x.UserId).HasMaxLength(255);
+            e.HasOne(x => x.Room).WithMany(x => x.Members).HasForeignKey(x => x.RoomId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ChatMessage>(e =>
+        {
+            e.ToTable("ChatMessages");
+            e.HasIndex(x => new { x.RoomId, x.Id });
+            e.Property(x => x.UserId).HasMaxLength(255);
+            e.Property(x => x.UserEmail).HasMaxLength(256);
+            e.Property(x => x.Text).HasMaxLength(ChatMessage.TextMaxLength).IsRequired();
+            e.HasOne<ChatRoom>().WithMany().HasForeignKey(x => x.RoomId).OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<Invitation>(e =>

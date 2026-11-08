@@ -1,0 +1,53 @@
+@page
+@model Tumlegaarden.Web.Pages.Chat.IndexModel
+@{
+    ViewData["Title"] = "Chat";
+    ViewData["HideChatWidget"] = true;
+}
+<section class="window">
+    <h2 class="window-title">Chat@(Model.Room is null ? "" : $": {Model.Room.Name}")</h2>
+    <div class="window-body">
+        <nav class="chat-rooms" aria-label="Rum">
+            @foreach (var r in Model.Rooms)
+            {
+                <a asp-page="/Chat/Index" asp-route-room="@r.Id" class="@(r.Id == Model.Room?.Id ? "is-current" : "")" aria-current="@(r.Id == Model.Room?.Id ? "page" : null)">@r.Name</a>
+            }
+            @if (Model.CanManage)
+            {
+                <a asp-page="/Chat/Rooms" class="chat-manage">Administrer rum</a>
+            }
+        </nav>
+
+        @if (Model.Room is null)
+        {
+            <p class="hint">Der er ingen chatrum endnu.</p>
+        }
+        else
+        {
+            <ol class="chat-list chat-list-page">
+                @if (Model.Messages.Count == 0)
+                {
+                    <li class="chat-empty">Ingen beskeder endnu. Skriv den første.</li>
+                }
+                @foreach (var m in Model.Messages)
+                {
+                    <li class="chat-msg@(m.Mine ? " is-mine" : "")">
+                        <span class="chat-meta"><strong>@m.User</strong> <span class="chat-time">@m.Time</span></span>
+                        <span class="chat-text">@m.Text</span>
+                    </li>
+                }
+            </ol>
+            <form method="post" asp-page-handler="Send" class="chat-form" id="chat-end">
+                <input type="hidden" name="room" value="@Model.Room.Id" />
+                <label for="chat-page-text" class="sr-only">Besked</label>
+                <textarea id="chat-page-text" name="text" rows="2" maxlength="1000" required placeholder="Skriv en besked …"></textarea>
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+            <p class="hint">Siden opdaterer ikke selv. Genindlæs for at se nye beskeder, eller brug chatboksen nederst til højre.</p>
+        }
+        @if (Model.CanManage)
+        {
+            <p class="hint">Som @(User.IsInRole(Tumlegaarden.Web.Security.Roles.Administrator) ? "administrator" : "diktator") kan du se alle rum.</p>
+        }
+    </div>
+</section>

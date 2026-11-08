@@ -1,0 +1,14 @@
+@* Chatboks nederst til højre. Uden JavaScript: et link til /Chat. Med JavaScript (wwwroot/js/chat.js): live chat. *@
+<div class="chat" id="chat" data-endpoint="/Chat">
+    <details class="chat-box">
+        <summary class="chat-toggle">Chat <span class="chat-badge" hidden></span></summary>
+        <section class="window chat-panel" aria-label="Chat">
+            <h2 class="window-title">Chat</h2>
+            <div class="chat-body">
+                <p class="chat-fallback">Åbn <a asp-page="/Chat/Index">chatten</a>.</p>
+            </div>
+        </section>
+    </details>
+    @Html.AntiForgeryToken()
+</div>
+<script src="~/js/chat.js" asp-append-version="true" defer></script>

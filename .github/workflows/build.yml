@@ -37,6 +37,12 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      - name: Tjek at chat.js er bygget fra chat.ts
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build:ts
+          git diff --exit-code -- src/Tumlegaarden.Web/wwwroot/js || { echo "::error::wwwroot/js passer ikke til Scripts/*.ts – kør 'npm run build:ts' og commit."; exit 1; }
+
       - name: Opdater listen over danske IP-adresser
         run: ./tools/update-dk-ip-ranges.sh || echo "::warning::Kunne ikke hente nye IP-data – bruger listen fra repoet."
 
@@ -50,6 +56,8 @@ jobs:
         run: |
           test -f publish/web.config
           test -f publish/Tumlegaarden.Web.exe
+          test -f publish/wwwroot/js/chat.js
+          test ! -f publish/tsconfig.json
           grep -q enableShadowCopy publish/web.config
           grep -q 'stdoutLogEnabled="true"' publish/web.config
           # <location path="..."> ud over "." fjerner ASP.NET-handleren for stien på Simply's IIS (HTTP 404.0).

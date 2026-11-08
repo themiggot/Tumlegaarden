@@ -1,0 +1,11 @@
+{
+  "name": "tumlegaarden",
+  "private": true,
+  "description": "Kun til at bygge TypeScript (chatten). Det byggede JavaScript ligger i src/Tumlegaarden.Web/wwwroot/js og er committet, så dotnet build ikke kræver Node.",
+  "scripts": {
+    "build:ts": "tsc -p src/Tumlegaarden.Web/tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

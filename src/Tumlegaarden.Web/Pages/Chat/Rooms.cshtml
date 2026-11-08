@@ -1,0 +1,48 @@
+@page
+@model Tumlegaarden.Web.Pages.Chat.RoomsModel
+@{
+    ViewData["Title"] = "Chatrum";
+}
+<section class="window">
+    <h2 class="window-title">Chatrum</h2>
+    <div class="window-body">
+        <p class="crumbs"><a asp-page="/Chat/Index">&lsaquo; Til chatten</a></p>
+        <p class="hint">Rummet "Alle" er for alle brugere og kan ikke ændres. Andre rum kan kun ses af deres medlemmer samt diktatorer og administratorer.</p>
+
+        @if (Model.Rooms.Count == 0)
+        {
+            <p class="hint">Der er ingen andre rum endnu.</p>
+        }
+        <div class="room-list">
+            @foreach (var room in Model.Rooms)
+            {
+                <details class="room" id="room-@room.Id" open="@(Model.Rooms.Count == 1)">
+                    <summary><strong>@room.Name</strong> <span class="hint">@room.Members.Count @(room.Members.Count == 1 ? "medlem" : "medlemmer")</span></summary>
+                    <form method="post" asp-page-handler="Members" asp-route-id="@room.Id">
+                        <fieldset class="members">
+                            <legend>Adgang</legend>
+                            @foreach (var (id, email) in Model.Users)
+                            {
+                                <label class="confirm"><input type="checkbox" name="members" value="@id" checked="@room.Members.Any(m => m.UserId == id)" /> @email</label>
+                            }
+                        </fieldset>
+                        <div class="actions"><button type="submit" class="btn btn-small btn-primary">Gem adgang</button></div>
+                    </form>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@room.Id" class="inline room-delete">
+                        <label class="confirm"><input type="checkbox" name="confirm" value="true" /> Bekræft</label>
+                        <button type="submit" class="btn btn-small btn-danger">Slet rum og beskeder</button>
+                    </form>
+                </details>
+            }
+        </div>
+
+        <form method="post" asp-page-handler="Create" class="create-room" novalidate>
+            <h3>Nyt rum</h3>
+            <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
+            <label asp-for="Input.Name">Navn</label>
+            <input asp-for="Input.Name" maxlength="60" />
+            <span asp-validation-for="Input.Name" class="field-err"></span>
+            <div class="actions"><button type="submit" class="btn btn-primary">Opret rum</button></div>
+        </form>
+    </div>
+</section>

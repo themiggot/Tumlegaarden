@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-  <div class="page" inert="@showDisclaimer">
+  <div class="page@(signedIn ? " signed-in" : "")" inert="@showDisclaimer">
     <header class="topbar">
         <h1 class="logo"><a asp-page="/Index">Tumlegaarden</a></h1>
         @if (signedIn)
@@ -25,6 +25,7 @@
             <nav class="topnav" aria-label="Hovedmenu">
                 <a asp-page="/Index">Kalender</a>
                 <a asp-page="/Albums/Index">Albums</a>
+                <a asp-page="/Chat/Index">Chat</a>
                 <a asp-page="/Users">Brugere</a>
                 @if (role == Roles.Administrator)
                 {
@@ -54,6 +55,10 @@
     @if (!showDisclaimer)
     {
         <partial name="_CookieNotice" />
+    }
+    @if (signedIn && ViewData["HideChatWidget"] is not true)
+    {
+        <partial name="_ChatWidget" />
     }
   </div>
   @if (showDisclaimer)

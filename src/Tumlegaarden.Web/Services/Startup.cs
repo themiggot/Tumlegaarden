@@ -20,6 +20,7 @@ public static class StartupTasks
         var db = sp.GetRequiredService<AppDbContext>();
         await db.Database.EnsureCreatedAsync();
         await SchemaUpdater.CreateMissingTablesAsync(db, log);
+        await sp.GetRequiredService<ChatService>().EnsureGlobalRoomAsync();
 
         var roleManager = sp.GetRequiredService<RoleManager<IdentityRole>>();
         foreach (var role in Roles.All)

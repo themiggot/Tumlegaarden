@@ -7,7 +7,7 @@ public static class DanishTime
 {
     public static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("da-DK");
 
-    private static readonly TimeZoneInfo Zone = FindZone();
+    public static readonly TimeZoneInfo Zone = FindZone();
 
     private static TimeZoneInfo FindZone()
     {
