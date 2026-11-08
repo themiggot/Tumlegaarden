@@ -1,0 +1,27 @@
+@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Opret konto";
+}
+<section class="panel">
+    <h2>Ny spiller</h2>
+    <p class="hint">Kun for @@@Model.Domain</p>
+    <form method="post" novalidate>
+        <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
+        <label asp-for="Input.Email">E-mail</label>
+        <input asp-for="Input.Email" autocomplete="username" autofocus />
+        <span asp-validation-for="Input.Email" class="field-err"></span>
+
+        <label asp-for="Input.Password">Adgangskode</label>
+        <input asp-for="Input.Password" autocomplete="new-password" />
+        <span asp-validation-for="Input.Password" class="field-err"></span>
+
+        <label asp-for="Input.ConfirmPassword">Gentag adgangskode</label>
+        <input asp-for="Input.ConfirmPassword" autocomplete="new-password" />
+        <span asp-validation-for="Input.ConfirmPassword" class="field-err"></span>
+
+        <partial name="_PasswordRules" />
+        <button type="submit" class="btn">Opret</button>
+    </form>
+    <nav class="links"><a asp-page="./Login">Tilbage til login</a></nav>
+</section>

@@ -1,0 +1,22 @@
+@page
+@model ConfirmEmailModel
+@{
+    ViewData["Title"] = "Bekræft e-mail";
+}
+<section class="panel">
+    <h2>Bekræft e-mail</h2>
+    @if (Model.Invalid)
+    {
+        <p class="msg msg-err">Linket er ugyldigt eller udløbet.</p>
+        <p><a class="btn" asp-page="./Login">Til login</a></p>
+    }
+    else
+    {
+        <p>Tryk på knappen for at aktivere din konto.</p>
+        <form method="post">
+            <input type="hidden" name="userId" value="@Model.UserId" />
+            <input type="hidden" name="code" value="@Model.Code" />
+            <button type="submit" class="btn">Aktivér</button>
+        </form>
+    }
+</section>

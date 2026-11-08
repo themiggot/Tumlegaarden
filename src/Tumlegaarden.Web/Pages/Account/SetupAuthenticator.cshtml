@@ -1,0 +1,35 @@
+@page
+@model SetupAuthenticatorModel
+@{
+    ViewData["Title"] = "To-faktor";
+}
+<section class="panel">
+    @if (Model.RecoveryCodes is { Length: > 0 } codes)
+    {
+        <h2>Gem koderne</h2>
+        <p class="msg msg-ok">To-faktor er slået til.</p>
+        <p>Skriv disse gendannelseskoder ned og gem dem et sikkert sted. De vises kun denne ene gang, og hver kode virker én gang, hvis du mister din telefon.</p>
+        <ul class="codes">
+            @foreach (var c in codes)
+            {
+                <li><code>@c</code></li>
+            }
+        </ul>
+        <p><a class="btn" href="@Model.ReturnUrl">Fortsæt</a></p>
+    }
+    else
+    {
+        <h2>To-faktor</h2>
+        <p>To-faktor er påkrævet. Scan QR-koden med en authenticator-app (fx Microsoft Authenticator, Google Authenticator eller 1Password).</p>
+        <img class="qr" src="@Model.QrDataUri" alt="QR-kode til authenticator-app" width="232" height="232" />
+        <p class="hint">Kan du ikke scanne? Indtast nøglen manuelt:</p>
+        <p><code class="key">@Model.SharedKey</code></p>
+        <form method="post" asp-route-returnUrl="@Model.ReturnUrl" novalidate>
+            <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
+            <label asp-for="Input.Code">Kode fra app</label>
+            <input asp-for="Input.Code" autocomplete="one-time-code" inputmode="numeric" />
+            <span asp-validation-for="Input.Code" class="field-err"></span>
+            <button type="submit" class="btn">Aktivér</button>
+        </form>
+    }
+</section>

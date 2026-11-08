@@ -1,0 +1,19 @@
+@page
+@model LoginWith2faModel
+@{
+    ViewData["Title"] = "To-faktor";
+}
+<section class="panel">
+    <h2>Kode fra app</h2>
+    <p>Indtast den 6-cifrede kode fra din authenticator-app.</p>
+    <form method="post" asp-route-returnUrl="@Model.ReturnUrl" novalidate>
+        <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
+        <label asp-for="Input.Code">Kode</label>
+        <input asp-for="Input.Code" autocomplete="one-time-code" inputmode="numeric" autofocus />
+        <span asp-validation-for="Input.Code" class="field-err"></span>
+        <button type="submit" class="btn">OK</button>
+    </form>
+    <nav class="links">
+        <a asp-page="./LoginWithRecoveryCode" asp-route-returnUrl="@Model.ReturnUrl">Brug en gendannelseskode</a>
+    </nav>
+</section>

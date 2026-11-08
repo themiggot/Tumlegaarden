@@ -1,0 +1,36 @@
+@{
+    var signedIn = User.Identity?.IsAuthenticated == true && User.HasClaim("amr", "mfa");
+    var status = TempData["Status"] as string;
+}
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@(ViewData["Title"] is string t ? $"{t} · Tumlegaarden" : "Tumlegaarden")</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="topbar">
+        <h1 class="logo"><a asp-page="/Index">Tumlegaarden</a></h1>
+        @if (signedIn)
+        {
+            <form method="post" asp-page="/Account/Logout" class="topbar-user">
+                <span class="who">@User.Identity!.Name</span>
+                <button type="submit" class="btn btn-small">Log ud</button>
+            </form>
+        }
+    </header>
+
+    <main class="stage">
+        @if (!string.IsNullOrEmpty(status))
+        {
+            <p class="msg msg-ok" role="status">@status</p>
+        }
+        @RenderBody()
+    </main>
+
+    <div class="ground" aria-hidden="true"></div>
+</body>
+</html>

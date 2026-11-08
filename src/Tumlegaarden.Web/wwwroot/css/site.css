@@ -1,0 +1,282 @@
+/* Tumlegaarden – 16-bit tema. Ingen JavaScript, kun CSS. */
+
+@font-face {
+    font-family: "Press Start 2P";
+    src: url("../fonts/press-start-2p.woff2") format("woff2");
+    font-display: swap;
+}
+
+:root {
+    --px: 4px;
+    --night: #181425;
+    --sky-top: #262b44;
+    --sky-bottom: #3a4466;
+    --panel: #f4f4e4;
+    --panel-shade: #c0cbdc;
+    --ink: #181425;
+    --edge: #181425;
+    --gold: #feae34;
+    --gold-dark: #f77622;
+    --grass: #63c74d;
+    --grass-dark: #3e8948;
+    --dirt: #733e39;
+    --red: #e43b44;
+    --blue: #0099db;
+    --white: #ffffff;
+    --font: "Press Start 2P", ui-monospace, "Courier New", monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { color-scheme: dark; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font);
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--ink);
+    background-color: var(--sky-top);
+    /* Dithered himmel-gradient i "SNES"-stil. */
+    background-image:
+        repeating-conic-gradient(rgba(255,255,255,.035) 0 25%, transparent 0 50%),
+        linear-gradient(var(--night) 0, var(--sky-top) 35%, var(--sky-bottom) 100%);
+    background-size: 8px 8px, 100% 100%;
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+    image-rendering: pixelated;
+}
+
+/* ---------- Topbar ---------- */
+.topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 16px 8px;
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.logo {
+    margin: 0;
+    font-size: clamp(20px, 6vw, 40px);
+    line-height: 1.2;
+    letter-spacing: 2px;
+}
+.logo a {
+    color: var(--gold);
+    text-decoration: none;
+    /* Blokskygge i flere lag, som en 16-bit titelskærm. */
+    text-shadow:
+        var(--px) var(--px) 0 var(--gold-dark),
+        calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--edge);
+}
+.logo a:focus-visible { outline: var(--px) solid var(--white); outline-offset: 6px; }
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+.who {
+    color: var(--panel-shade);
+    font-size: 10px;
+    overflow-wrap: anywhere;
+}
+
+/* ---------- Scene ---------- */
+.stage {
+    flex: 1;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+}
+
+/* Pixel-ramme med "afskårne" hjørner via box-shadow. */
+.panel {
+    max-width: 480px;
+    margin: 24px auto;
+    padding: 24px;
+    background: var(--panel);
+    box-shadow:
+        0 calc(var(--px) * -1) 0 0 var(--edge),
+        0 var(--px) 0 0 var(--edge),
+        calc(var(--px) * -1) 0 0 0 var(--edge),
+        var(--px) 0 0 0 var(--edge),
+        inset calc(var(--px) * -1) calc(var(--px) * -1) 0 0 var(--panel-shade),
+        calc(var(--px) * 2) calc(var(--px) * 3) 0 0 rgba(0,0,0,.35);
+}
+
+.panel h2 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    line-height: 1.4;
+    color: var(--dirt);
+}
+.panel p { margin: 0 0 16px; }
+
+.hint { color: #5a6988; font-size: 10px; }
+
+/* ---------- Formularer ---------- */
+form { margin: 0; }
+
+label {
+    display: block;
+    margin: 16px 0 8px;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+input:not([type="hidden"]) {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    font: inherit;
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--white);
+    border: 0;
+    border-radius: 0;
+    box-shadow:
+        0 calc(var(--px) * -1) 0 0 var(--edge),
+        0 var(--px) 0 0 var(--edge),
+        calc(var(--px) * -1) 0 0 0 var(--edge),
+        var(--px) 0 0 0 var(--edge),
+        inset var(--px) var(--px) 0 0 var(--panel-shade);
+}
+input:focus { outline: none; background: #fff8d8; }
+input:focus-visible {
+    box-shadow:
+        0 calc(var(--px) * -1) 0 0 var(--blue),
+        0 var(--px) 0 0 var(--blue),
+        calc(var(--px) * -1) 0 0 0 var(--blue),
+        var(--px) 0 0 0 var(--blue),
+        inset var(--px) var(--px) 0 0 var(--panel-shade);
+}
+
+.btn {
+    display: inline-block;
+    margin-top: 24px;
+    padding: 12px 20px;
+    font: inherit;
+    font-size: 12px;
+    color: var(--ink);
+    text-decoration: none;
+    text-transform: uppercase;
+    background: var(--gold);
+    border: 0;
+    border-radius: 0;
+    cursor: pointer;
+    box-shadow:
+        0 calc(var(--px) * -1) 0 0 var(--edge),
+        0 var(--px) 0 0 var(--edge),
+        calc(var(--px) * -1) 0 0 0 var(--edge),
+        var(--px) 0 0 0 var(--edge),
+        inset calc(var(--px) * -1) calc(var(--px) * -1) 0 0 var(--gold-dark),
+        inset var(--px) var(--px) 0 0 #ffd27a;
+}
+.btn:hover { background: #ffc04f; }
+.btn:active {
+    transform: translateY(var(--px));
+    box-shadow:
+        0 calc(var(--px) * -1) 0 0 var(--edge),
+        0 var(--px) 0 0 var(--edge),
+        calc(var(--px) * -1) 0 0 0 var(--edge),
+        var(--px) 0 0 0 var(--edge),
+        inset var(--px) var(--px) 0 0 var(--gold-dark);
+}
+.btn:focus-visible { outline: var(--px) solid var(--blue); outline-offset: 6px; }
+.btn-small { margin: 0; padding: 8px 12px; font-size: 10px; }
+.panel .btn::before { content: "\25B6\00a0"; }
+.btn-small::before { content: none !important; }
+
+.links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+    font-size: 10px;
+}
+.links a, .panel a:not(.btn) { color: var(--blue); }
+.links a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.rules {
+    margin: 16px 0 0;
+    padding: 12px 12px 12px 28px;
+    font-size: 9px;
+    line-height: 1.9;
+    color: #3a4466;
+    background: #e4e6d4;
+    list-style: square;
+}
+
+/* ---------- Beskeder ---------- */
+.msg {
+    margin: 0 0 16px;
+    padding: 12px;
+    font-size: 10px;
+    color: var(--white);
+}
+.msg ul { margin: 0; padding-left: 16px; }
+.msg-err { background: var(--red); box-shadow: inset 0 calc(var(--px) * -1) 0 0 #a1222b; }
+.msg-ok  { background: var(--grass-dark); box-shadow: inset 0 calc(var(--px) * -1) 0 0 #265c42; }
+.stage > .msg { max-width: 480px; margin: 0 auto 16px; }
+.validation-summary-valid { display: none; }
+
+.field-err { display: block; margin-top: 8px; font-size: 9px; color: var(--red); }
+.input-validation-error { background: #ffe4e4 !important; }
+
+/* ---------- 2FA ---------- */
+.qr {
+    display: block;
+    margin: 0 auto 16px;
+    image-rendering: pixelated;
+    box-shadow: 0 0 0 var(--px) var(--edge);
+}
+code {
+    font-family: var(--font);
+    font-size: 11px;
+}
+.key {
+    display: block;
+    padding: 12px;
+    background: var(--white);
+    word-spacing: 4px;
+    overflow-wrap: anywhere;
+    user-select: all;
+}
+.codes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 12px;
+    list-style: none;
+    background: var(--white);
+}
+
+/* ---------- Jordstribe ---------- */
+.ground {
+    height: 48px;
+    background:
+        linear-gradient(var(--grass) 0 12px, var(--grass-dark) 12px 16px, transparent 16px),
+        repeating-conic-gradient(var(--dirt) 0 25%, #8f563b 0 50%) 0 0 / 8px 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn:active { transform: none; }
+}
+
+@media (max-width: 420px) {
+    .panel { padding: 16px; }
+    .codes { grid-template-columns: 1fr; }
+}
