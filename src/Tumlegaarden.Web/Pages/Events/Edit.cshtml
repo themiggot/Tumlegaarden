@@ -34,7 +34,7 @@
                 <div class="field-row">
                     <div class="field">
                         <label asp-for="Input.EndDate">Dato</label>
-                        <input asp-for="Input.EndDate" type="date" min="2000-01-01" max="2100-12-31" />
+                        <input asp-for="Input.EndDate" type="date" min="2000-01-01" max="2100-12-31" data-min-from="Input_Date" />
                         <span asp-validation-for="Input.EndDate" class="field-err"></span>
                     </div>
                     <div class="field">

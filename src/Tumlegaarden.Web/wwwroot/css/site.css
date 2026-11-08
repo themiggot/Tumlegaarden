@@ -78,6 +78,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .topnav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
 .topnav form { margin: 0; }
 .topnav > a { color: var(--face-hi); font-weight: 700; }
+/* "Start" står ud fra de andre faner: guld knap med skrå kanter. */
+.topnav > a.nav-home { padding: 3px 12px; color: var(--ink); text-decoration: none; background: var(--gold);
+    box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 #fbe9b4, inset calc(var(--b) * -1) calc(var(--b) * -1) 0 #b8952f; }
+.topnav > a.nav-home:hover { background: #f8df98; }
+.topnav > a.nav-home[aria-current="page"] { box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 #b8952f, inset calc(var(--b) * -1) calc(var(--b) * -1) 0 #fbe9b4; }
 .who { color: #b9c2cc; font-size: 15px; overflow-wrap: anywhere; }
 
 /* ---------- Scene ---------- */
@@ -166,6 +171,12 @@ input:not([type="hidden"]):not([type="checkbox"]), select, textarea {
         inset calc(var(--b) * -1) calc(var(--b) * -1) 0 var(--face-hi);
 }
 textarea { resize: vertical; min-height: 8em; line-height: 1.5; }
+/* Dato- og tidsfelter: hele feltet åbner kalenderen/uret (forms.ts), og ikonet er tydeligt. */
+input[type="date"], input[type="time"] { cursor: pointer; }
+/* Felterne er lyse, så browserens ikoner og kalender-popup skal også være lyse (siden er ellers mørk). */
+input, select, textarea { color-scheme: light; }
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator { width: 20px; height: 20px; padding: 2px; cursor: pointer; background-color: var(--gold); box-shadow: 0 0 0 1px var(--edge); }
 input[readonly] { background: var(--face); color: var(--muted); }
 select { width: auto; min-width: 9em; padding-right: 28px; }
 input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); vertical-align: -2px; }

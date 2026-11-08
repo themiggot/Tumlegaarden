@@ -5,7 +5,7 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 
 ## Funktioner
 
-- **Startside** efter login (`/`, også når man klikker på "Tumlegaarden"): "Tumlegaarden – Det online paradis", officielt game og reglementet. Teksten står i `Pages/Index.cshtml`.
+- **Startside** efter login (`/`, via den gule "Start"-knap i menuen eller ved klik på "Tumlegaarden"): "Tumlegaarden – Det online paradis", officielt game og reglementet. Teksten står i `Pages/Index.cshtml`.
 - **Kalender** på `/Calendar`. Begivenheder har startdato og evt. tidspunkt, en valgfri slutdato/-tid (så de kan vare flere dage), navn og brødtekst, ligger i tabellen `Events` og foldes ud ved klik (HTML `<details>`, ingen JavaScript).
 - **Deltagelse:** alle kan svare *Deltager* eller *Deltager ikke* på en begivenhed (tabellen `EventResponses`). Samme knap igen fjerner svaret.
 - **Albums:** alle kan oprette albums og uploade billeder (JPEG, PNG, WebP, GIF). Billederne kodes om med [ImageSharp](https://github.com/SixLabors/ImageSharp): orientering rettes, GPS og andre metadata fjernes, og der gemmes en version på højst 2048 px plus en miniature. Filerne ligger i `/tumlegaarden-data/albums` uden for web-mappen og udleveres kun til brugere, der er logget ind. Maks. størrelse pr. billede (standard 5 MB) styres af administratorer under **Indstillinger** (tabellen `Settings`).
@@ -65,16 +65,20 @@ kan der tilføjes rigtig SSO (OpenID Connect) med ganske få linjer i `Program.c
 Den har samme regler, roller og tema, plus en indbakke og en authenticator, så man ikke behøver mailserver eller telefon.
 Den er kun til at teste. Den rigtige sikkerhed ligger i ASP.NET-projektet.
 
-## TypeScript (chatten)
+## TypeScript
 
-Sitet bruger kun JavaScript til chatboksen. Kilden er `src/Tumlegaarden.Web/Scripts/chat.ts`, og det byggede `wwwroot/js/chat.js` er committet, så `dotnet build` ikke kræver Node.
+Sitet bruger kun lidt JavaScript, og alt virker også uden:
+- `Scripts/chat.ts`: chatboksen nederst til højre.
+- `Scripts/forms.ts`: et klik hvor som helst i et dato- eller tidsfelt åbner browserens kalender eller ur, og slutdatoen kan ikke vælges før startdatoen.
+
+Det byggede JavaScript i `wwwroot/js` er committet, så `dotnet build` ikke kræver Node.
 
 ```bash
 npm install
 npm run build:ts
 ```
 
-GitHub Actions stopper bygget, hvis `chat.js` ikke passer til `chat.ts`. Chatboksen henter nye beskeder hvert 4. sekund, når den er åben, og ellers hvert 30. sekund for at vise markeringen for nye beskeder. Al tekst indsættes med `textContent`, og CSP tillader kun scripts fra sitet selv.
+GitHub Actions stopper bygget, hvis filerne i `wwwroot/js` ikke passer til `Scripts/*.ts`. Chatboksen henter nye beskeder hvert 4. sekund, når den er åben, og ellers hvert 30. sekund for at vise markeringen for nye beskeder. Al tekst indsættes med `textContent`, og CSP tillader kun scripts fra sitet selv.
 
 ## Tests
 

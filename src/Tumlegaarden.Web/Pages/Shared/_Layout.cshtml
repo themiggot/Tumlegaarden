@@ -23,6 +23,7 @@
         @if (signedIn)
         {
             <nav class="topnav" aria-label="Hovedmenu">
+                <a asp-page="/Index" class="nav-home" aria-current="@(Context.Request.Path == "/" ? "page" : null)">Start</a>
                 <a asp-page="/Calendar">Kalender</a>
                 <a asp-page="/Albums/Index">Albums</a>
                 <a asp-page="/Chat/Index">Chat</a>
@@ -55,6 +56,10 @@
     @if (!showDisclaimer)
     {
         <partial name="_CookieNotice" />
+    }
+    @if (signedIn)
+    {
+        <script src="~/js/forms.js" asp-append-version="true" defer></script>
     }
     @if (signedIn && ViewData["HideChatWidget"] is not true)
     {
