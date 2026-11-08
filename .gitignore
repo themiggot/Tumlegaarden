@@ -485,3 +485,5 @@ $RECYCLE.BIN/
 App_Data/
 appsettings.Production.json
 publish/
+tumlegaarden-data/
+tumlegaarden-shadow/

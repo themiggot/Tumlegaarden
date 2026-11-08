@@ -16,8 +16,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(o => o.AddServerHeader = false);
 
 // ---------- Lagring ----------
-var appData = Path.Combine(builder.Environment.ContentRootPath, "App_Data");
+// Data og hemmeligheder ligger UDEN FOR web-mappen (fx /tumlegaarden-data ved siden af /public_html),
+// så "Importer fra Git" hos Simply.com kan erstatte public_html uden at slette dem.
+// Findes mappen ikke, bruges App_Data inde i appen (lokal udvikling).
+var appData = DataDirectory.Resolve(builder.Configuration, builder.Environment);
 Directory.CreateDirectory(appData);
+builder.Configuration.AddJsonFile(Path.Combine(appData, "appsettings.Production.json"), optional: true, reloadOnChange: false);
 
 // Database: MySQL (Simply.com), SQL Server eller – hvis intet er sat op – en SQLite-fil i App_Data.
 var mySql = builder.Configuration.GetConnectionString("MySql");
@@ -159,6 +163,9 @@ builder.Services.Configure<CookieTempDataProviderOptions>(o =>
 builder.Services.AddHsts(o => o.MaxAge = TimeSpan.FromDays(365));
 
 var app = builder.Build();
+app.Logger.LogInformation("Datamappe: {DataDirectory}", appData);
+if (app.Environment.IsProduction() && DataDirectory.IsInside(appData, app.Environment.ContentRootPath))
+    app.Logger.LogWarning("Datamappen ligger inde i web-mappen og kan blive slettet ved næste Git-import. Opret mappen ../{Folder}.", DataDirectory.DefaultFolderName);
 
 await StartupTasks.InitializeAsync(app.Services);
 

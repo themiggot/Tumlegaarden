@@ -1,7 +1,12 @@
-name: Byg udgivelsespakke
+name: Byg og udgiv
 
-# Bygger sitet til Windows/IIS (Simply.com) og gemmer resultatet som en zip under "Artifacts".
-# Kører ved push til main, og kan startes manuelt under Actions med valg af runtime.
+# Bygger sitet til Windows/IIS (Simply.com) ved hver push til main og:
+#  1. gemmer det som en zip under "Artifacts" (til upload med FTP), og
+#  2. lægger det færdige site på grenen "release" (til Simply's "Importer fra Git").
+# Grenen "release" indeholder kun det byggede site – én commit, som erstattes ved hver udgivelse.
+#
+# Runtime: sæt repo-variablen RUNTIME til win-x86, hvis Simply kræver det
+# (Settings → Secrets and variables → Actions → Variables). Standard er win-x64.
 on:
   push:
     branches: [main]
@@ -14,13 +19,17 @@ on:
         default: win-x64
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      RUNTIME: ${{ inputs.runtime || 'win-x64' }}
+      RUNTIME: ${{ inputs.runtime || vars.RUNTIME || 'win-x64' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,11 +44,33 @@ jobs:
         run: |
           test -f publish/web.config
           test -f publish/Tumlegaarden.Web.exe
+          grep -q enableShadowCopy publish/web.config
           test ! -f publish/appsettings.Production.json
           test ! -f publish/appsettings.Development.json
+
+      - name: Versionsinfo
+        run: |
+          {
+            echo "Tumlegaarden"
+            echo "Commit:  $GITHUB_SHA"
+            echo "Runtime: $RUNTIME"
+            echo "Bygget:  $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > publish/version.txt
 
       - uses: actions/upload-artifact@v4
         with:
           name: tumlegaarden-${{ env.RUNTIME }}
           path: publish/
           retention-days: 30
+
+      - name: Udgiv til grenen release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd publish
+          git init -q -b release
+          git add -A
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "Udgivelse af ${GITHUB_SHA::7} ($RUNTIME)"
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" release

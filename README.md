@@ -60,6 +60,10 @@ dotnet run --launch-profile https
 Åbn https://localhost:7195. Lokalt sendes der ingen mails – links skrives i konsollen. Ved første start skrives en invitation til `admin@tumlegaarden.dk` i konsollen; åbn den for at oprette den første administrator.
 Databasen er SQLite i `App_Data/` og oprettes automatisk.
 
+### Datamappe
+Database-fil, krypteringsnøgler og `appsettings.Production.json` ligger i datamappen: `App:DataPath` hvis sat, ellers mappen
+`tumlegaarden-data` ved siden af appens mappe, hvis den findes, ellers `App_Data/` i appen. Den valgte mappe skrives i loggen ved opstart.
+
 ### Database
 Sitet vælger database ud fra `ConnectionStrings` i denne rækkefølge: `MySql` (bruges hos Simply.com), `SqlServer`, og ellers en SQLite-fil i `App_Data/`.
 MySQL-driveren er Oracles `MySql.EntityFrameworkCore`, fordi Pomelo endnu ikke understøtter .NET 10. Testet mod MySQL 8.0.
@@ -67,5 +71,9 @@ Får I en SSL-fejl ved forbindelsen, så skift `SslMode=Required` til `SslMode=P
 
 ## Udgiv til Simply.com
 
-Se **[DEPLOY.md](DEPLOY.md)** for den komplette vejledning: upload-pakke fra GitHub Actions, MySQL, mail, FTP, første administrator, opdateringer og fejlsøgning.
+Se **[DEPLOY.md](DEPLOY.md)** for den komplette vejledning.
+
+Kort fortalt: GitHub Actions bygger sitet ved hver push til `main` og lægger det færdige site på grenen `release`, som er repoets standard-gren.
+Simply.com's **Importer fra Git** henter `release` ind i `/public_html`. Hemmeligheder og data ligger i `/tumlegaarden-data` ved siden af,
+så en import aldrig rører dem. IIS kører appen med shadow copy, så importen kan overskrive filerne, mens sitet kører.
 
