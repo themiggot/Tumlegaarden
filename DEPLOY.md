@@ -33,7 +33,8 @@ Sitet er en ASP.NET Core 10-app og kræver Simply's Windows/IIS-hosting med ASP.
 1. Se under **Website → Oversigt** og **Administration**, om der står ASP.NET, .NET eller Windows.
 2. Er du i tvivl, så skriv til Simply's support:
    > Understøtter webhotellet for tumlegaarden.dk ASP.NET Core 10 som self-contained app, skal vi udgive til win-x64 eller win-x86, og må appen læse og skrive i mapper ved siden af public_html?
-3. **Siger Simply x86:** på GitHub, gå til **Settings → Secrets and variables → Actions → Variables → New repository variable**. Navn `RUNTIME`, værdi `win-x86`. Gå så til **Actions → Byg og udgiv → Run workflow**.
+3. Sitet bygges som **32-bit (`win-x86`)**, fordi Simply's app-pool kører 32-bit. En 64-bit-pakke giver *HTTP Error 500.32 – Failed to load .NET Core host*.
+   Skulle Simply en dag skifte til 64-bit, så opret repo-variablen `RUNTIME` med værdien `win-x64` under **Settings → Secrets and variables → Actions → Variables** og kør **Actions → Byg og udgiv → Run workflow**.
 
 ---
 
@@ -171,7 +172,8 @@ Første linjer i loggen viser `Datamappe: …`. Det er mappen, sitet læser hemm
 | Importen fejler: "repository not found" eller lignende | Repoet er privat, eller URL'en er forkert | Se trin 4. URL'en skal ende på `.git`. |
 | Importen henter kildekode (`src/`, `README.md`) i stedet for `web.config` | Standard-grenen er `main`, ikke `release` | Sæt **Default branch** til `release` (trin 4) og importér igen. |
 | **HTTP 500.19** | IIS forstår ikke en linje i `web.config` | Prøv at fjerne `removeServerHeader="true"`. Rettelsen skal laves i `src/Tumlegaarden.Web/web.config` på `main`. Kontakt udvikleren. |
-| **HTTP 500.30 / 500.32** | Appen kan ikke starte, ofte x64/x86 | Sæt `RUNTIME` (trin 1), vent på Actions, importér igen. Ellers læs loggen. |
+| **HTTP 500.32** – Failed to load .NET Core host | Pakken er bygget til en anden bitness end app-poolen | Tjek `version.txt`: der skal stå `Runtime: win-x86`. Se trin 1. |
+| **HTTP 500.30** | Appen starter, men går ned under opstart | Læs loggen. Oftest database eller konfiguration (se nedenfor). |
 | 500-fejl, der nævner shadow copy, eller `tumlegaarden-shadow` kan ikke oprettes | IIS må ikke skrive ved siden af `public_html` | Opret mappen `/tumlegaarden-shadow` selv i File Manager. Hjælper det ikke, så bed udvikleren slå shadow copy fra og brug `app_offline.htm` ved opdateringer (afsnit 8). |
 | Loggen siger "Datamappen ligger inde i web-mappen" | `/tumlegaarden-data` findes ikke eller ligger forkert | Tjek at mappen ligger ved siden af `public_html` og er stavet præcis sådan (trin 3). |
 | **HTTP 500.30** med databasefejl i loggen | Forkert forbindelsesstreng | Tjek server, bruger og adgangskode. Ved SSL-fejl: skift `SslMode=Required` til `SslMode=Preferred`. |
@@ -188,7 +190,7 @@ Første linjer i loggen viser `Datamappe: …`. Det er mappen, sitet læser hemm
 
 Brug denne metode, hvis *Importer fra Git* ikke virker, eller repoet skal være privat.
 
-1. Hent pakken: GitHub → **Actions → Byg og udgiv** → seneste grønne kørsel → **Artifacts** → `tumlegaarden-win-x64`. Pak zip-filen ud.
+1. Hent pakken: GitHub → **Actions → Byg og udgiv** → seneste grønne kørsel → **Artifacts** → `tumlegaarden-win-x86`. Pak zip-filen ud.
 2. Forbind med [FileZilla](https://filezilla-project.org/) eller [WinSCP](https://winscp.net/) med oplysningerne fra **File Manager → Loginoplysninger**. Brug SFTP eller **Kræv eksplicit FTP over TLS**, aldrig ukrypteret FTP.
 3. Ved opdatering: upload `deploy/app_offline.htm` til `/public_html` først.
 4. Upload **indholdet** af den udpakkede mappe til `/public_html` og overskriv.

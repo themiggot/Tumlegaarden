@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Simply.com: selvstændig udgivelse, så sitet ikke afhænger af hvilken .NET-version webhotellet har installeret. -->
-    <RuntimeIdentifier Condition="'$(Configuration)' == 'Release'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(Configuration)' == 'Release'">win-x86</RuntimeIdentifier>
     <SelfContained Condition="'$(Configuration)' == 'Release'">true</SelfContained>
   </PropertyGroup>
 

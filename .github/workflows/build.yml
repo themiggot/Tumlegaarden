@@ -5,18 +5,18 @@ name: Byg og udgiv
 #  2. lægger det færdige site på grenen "release" (til Simply's "Importer fra Git").
 # Grenen "release" indeholder kun det byggede site – én commit, som erstattes ved hver udgivelse.
 #
-# Runtime: sæt repo-variablen RUNTIME til win-x86, hvis Simply kræver det
-# (Settings → Secrets and variables → Actions → Variables). Standard er win-x64.
+# Runtime: Simply.com's app-pool kører 32-bit, så standard er win-x86 (win-x64 giver HTTP 500.32).
+# Kan overstyres med repo-variablen RUNTIME (Settings → Secrets and variables → Actions → Variables).
 on:
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
       runtime:
-        description: "Runtime (spørg Simply om x64 eller x86)"
+        description: "Runtime (Simply.com bruger win-x86)"
         type: choice
-        options: [win-x64, win-x86]
-        default: win-x64
+        options: [win-x86, win-x64]
+        default: win-x86
 
 permissions:
   contents: write
@@ -29,7 +29,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      RUNTIME: ${{ inputs.runtime || vars.RUNTIME || 'win-x64' }}
+      RUNTIME: ${{ inputs.runtime || vars.RUNTIME || 'win-x86' }}
     steps:
       - uses: actions/checkout@v4
 
