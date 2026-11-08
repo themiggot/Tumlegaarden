@@ -60,11 +60,16 @@ dotnet run --launch-profile https
 Åbn https://localhost:7195. Lokalt sendes der ingen mails – links skrives i konsollen. Ved første start skrives en invitation til `admin@tumlegaarden.dk` i konsollen; åbn den for at oprette den første administrator.
 Databasen er SQLite i `App_Data/` og oprettes automatisk.
 
+### Database
+Sitet vælger database ud fra `ConnectionStrings` i denne rækkefølge: `MySql` (bruges hos Simply.com), `SqlServer`, og ellers en SQLite-fil i `App_Data/`.
+MySQL-driveren er Oracles `MySql.EntityFrameworkCore`, fordi Pomelo endnu ikke understøtter .NET 10. Testet mod MySQL 8.0.
+Får I en SSL-fejl ved forbindelsen, så skift `SslMode=Required` til `SslMode=Preferred`.
+
 ## Udgiv til Simply.com
 
-1. **Database:** Opret en MS SQL-database i Simply's kontrolpanel.
+1. **Database:** Opret en MySQL-database i Simply's kontrolpanel (Databaser → MySQL). Notér server, databasenavn, bruger og adgangskode.
 2. **Mailkonto:** Opret fx `noreply@tumlegaarden.dk`, som sitet sender bekræftelses- og nulstillingsmails fra.
-3. **Konfiguration:** Kopiér `appsettings.Production.example.json` til `appsettings.Production.json` og udfyld forbindelsesstreng, mailpassword og `Bootstrap:AdminEmail` (den første administrator). Tjek at `App:PublicBaseUrl` i `appsettings.json` er sitets adresse.
+3. **Konfiguration:** Kopiér `appsettings.Production.example.json` til `appsettings.Production.json` og udfyld MySQL-forbindelsesstrengen (server fra kontrolpanelet), mailpassword og `Bootstrap:AdminEmail` (den første administrator). Tjek at `App:PublicBaseUrl` i `appsettings.json` er sitets adresse.
    Filen er i `.gitignore` og skal aldrig committes.
 4. **Byg:**
    ```bash

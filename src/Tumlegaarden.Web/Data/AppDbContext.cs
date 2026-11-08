@@ -12,6 +12,20 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        // MySQL kan ikke indeksere tekstkolonner uden længde. Giv alle nøgle- og
+        // indekskolonner uden længde maks. 255 tegn (rigeligt til GUID'er og navne).
+        foreach (var entity in builder.Model.GetEntityTypes())
+        {
+            var keyed = entity.GetKeys().SelectMany(k => k.Properties)
+                .Concat(entity.GetForeignKeys().SelectMany(f => f.Properties))
+                .Concat(entity.GetIndexes().SelectMany(i => i.Properties));
+            foreach (var property in keyed.Distinct())
+            {
+                if (property.ClrType == typeof(string) && property.GetMaxLength() is null)
+                    property.SetMaxLength(255);
+            }
+        }
+
         builder.Entity<Invitation>(e =>
         {
             e.HasIndex(i => i.TokenHash).IsUnique();

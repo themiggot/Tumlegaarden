@@ -19,6 +19,9 @@ public class UsersModel(
     IOptions<SecurityOptions> options,
     ILogger<UsersModel> logger) : PageModel
 {
+    // DateTimeOffset.MaxValue kan ikke gemmes i MySQL's datetime – år 9000 virker i alle databaser.
+    private static readonly DateTimeOffset PermanentLock = new(9000, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
     [BindProperty] public InviteInput Invite { get; set; } = new();
     public List<UserRow> Users { get; private set; } = [];
     public List<Invitation> Pending { get; private set; } = [];
@@ -103,7 +106,7 @@ public class UsersModel(
     {
         if (await OtherUserAsync(id) is not { } user) return NotFound();
         await userManager.SetLockoutEnabledAsync(user, true);
-        await userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+        await userManager.SetLockoutEndDateAsync(user, PermanentLock);
         await userManager.UpdateSecurityStampAsync(user);
         return Done($"{user.Email} er låst.");
     }

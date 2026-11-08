@@ -19,10 +19,13 @@ builder.WebHost.ConfigureKestrel(o => o.AddServerHeader = false);
 var appData = Path.Combine(builder.Environment.ContentRootPath, "App_Data");
 Directory.CreateDirectory(appData);
 
+// Database: MySQL (Simply.com), SQL Server eller – hvis intet er sat op – en SQLite-fil i App_Data.
+var mySql = builder.Configuration.GetConnectionString("MySql");
 var sqlServer = builder.Configuration.GetConnectionString("SqlServer");
 builder.Services.AddDbContext<AppDbContext>(o =>
 {
-    if (!string.IsNullOrWhiteSpace(sqlServer)) o.UseSqlServer(sqlServer);
+    if (!string.IsNullOrWhiteSpace(mySql)) o.UseMySQL(mySql);
+    else if (!string.IsNullOrWhiteSpace(sqlServer)) o.UseSqlServer(sqlServer);
     else o.UseSqlite($"Data Source={Path.Combine(appData, "tumlegaarden.db")}");
 });
 
