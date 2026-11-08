@@ -12,6 +12,7 @@ GitHub: main  ──(GitHub Actions bygger)──►  GitHub: release  ──(Si
 Simply.com:
 /
 ├── public_html/          ← sitet. Erstattes ved hver import. Gem aldrig noget her selv.
+├── tumlegaarden-logs/    ← log fra sitet. Oprettes automatisk, én fil pr. opstart.
 ├── tumlegaarden-data/    ← hemmeligheder og data. Røres aldrig af importen.
 │   ├── appsettings.Production.json   (du opretter den, trin 3)
 │   └── keys/                         (oprettes af sitet: nøgler til login-cookies)
@@ -49,7 +50,8 @@ Tabellerne oprettes automatisk af sitet ved første start.
 
 ### 2c. Mailkonto til afsendelse
 **E-mail**: opret `noreply@tumlegaarden.dk` med en lang, tilfældig adgangskode.
-Find SMTP-serveren under mailkontoens opsætning. Sitet er sat op til `smtp.simply.com` på port 587. Står der noget andet, så brug det.
+Mail fra webhotellet skal sendes via **`websmtp.simply.com`**, ikke `smtp.simply.com`, som er til mailprogrammer.
+Se Simply's vejledning [Outgoing mail server for scripts](https://www.simply.com/en/support/faq/mail/23-outgoing-mail-server-for-scripts/) for port og login.
 
 ---
 
@@ -70,8 +72,9 @@ Hemmelighederne må **aldrig** ligge på GitHub eller i `public_html`.
     "MySql": "Server=MYSQL_SERVER;Port=3306;Database=DATABASENAVN;User Id=BRUGERNAVN;Password=ADGANGSKODE;SslMode=Required;CharSet=utf8mb4"
   },
   "Smtp": {
-    "Host": "smtp.simply.com",
+    "Host": "websmtp.simply.com",
     "Port": 587,
+    "Security": "StartTls",
     "UserName": "noreply@tumlegaarden.dk",
     "Password": "MAILKONTOENS_ADGANGSKODE",
     "FromAddress": "noreply@tumlegaarden.dk"
@@ -83,7 +86,7 @@ Hemmelighederne må **aldrig** ligge på GitHub eller i `public_html`.
 |---|---|
 | `Bootstrap:AdminEmail` | Den første administrator. Får en invitation, når databasen er tom. Skal være en `@tumlegaarden.dk`-adresse, du kan læse. |
 | `ConnectionStrings:MySql` | Oplysningerne fra trin 2b. Indeholder adgangskoden et `;`, så kontakt udvikleren. |
-| `Smtp:*` | Mailkontoen fra trin 2c. Port 587 bruger STARTTLS, port 465 bruger SSL. |
+| `Smtp:*` | Mailkontoen fra trin 2c. `Security` er `StartTls` (port 587), `SslOnConnect` (port 465), `StartTlsWhenAvailable` eller `None`. Brug det, Simply's vejledning angiver. |
 
 Laver du filen på din computer, så brug en teksteditor (Notesblok, VS Code), ikke Word, og gem som UTF-8.
 
@@ -158,13 +161,12 @@ Rør aldrig `/tumlegaarden-data`. Slettes `keys`, bliver alle logget ud. Slettes
 
 ## 9. Fejlsøgning
 
-Slå detaljeret log til, når noget fejler:
-1. Opret mappen `logs` i `/public_html`.
-2. Ret `stdoutLogEnabled="false"` til `"true"` i `/public_html/web.config`.
-3. Genindlæs siden og læs den nyeste fil i `logs/`. Se også **Website → Webserver logs**.
-4. Rettelsen forsvinder ved næste import, og det er meningen.
+**Loggen er altid slået til.** Den ligger i `/tumlegaarden-logs` ved siden af `public_html`, med én fil pr. opstart (`stdout_ÅÅÅÅMMDDTTMMSS_….log`). Den nyeste fil er den interessante.
+Se også **Website → Webserver logs**. Slet gamle filer i `/tumlegaarden-logs` en gang imellem.
 
-Første linjer i loggen viser `Datamappe: …`. Det er mappen, sitet læser hemmeligheder fra.
+De første linjer i loggen viser:
+- `Datamappe: …`: mappen, sitet læser hemmeligheder fra.
+- `SMTP: server:port (kryptering), login: …, adgangskode: sat/mangler, afsender: …`: de mailindstillinger, sitet faktisk bruger. Adgangskoden skrives aldrig.
 
 | Symptom | Sandsynlig årsag | Løsning |
 |---|---|---|
@@ -192,9 +194,9 @@ Invitationen sendes kun, når der **ingen brugere** findes. Den går til adresse
 1. **Tjek `/tumlegaarden-data`:** Findes mappen `keys` derinde? Hvis ikke, har sitet ikke fundet datamappen og har ikke læst `appsettings.Production.json`. Tjek mappens navn og placering (ved siden af `public_html`).
    Ligger der i stedet en mappe `App_Data` inde i `/public_html`, er det samme problem.
 2. **Tjek spam** i den indbakke, `Bootstrap:AdminEmail` peger på.
-3. **Slå loggen til** (se ovenfor) og genstart app-poolen. Loggen siger én af disse:
+3. **Genstart app-poolen** og læs den nyeste fil i `/tumlegaarden-logs`. Tjek linjen `SMTP: …` (skal være `websmtp.simply.com`). Loggen siger én af disse:
    - `Administrator-invitation sendt til …`: mailen er afsendt. Tjek spam, og at adressen findes.
-   - `Kunne ikke sende administrator-invitation …`: SMTP-indstillingerne er forkerte. Ret dem i `appsettings.Production.json`. Der prøves igen ved næste start.
+   - `Kunne ikke sende administrator-invitation …`: SMTP-indstillingerne er forkerte. Linjen under viser fejlen, fx `Name or service not known` (forkert server), `Authentication failed` (forkert login) eller en TLS-fejl (ret `Security`). Ret dem i `appsettings.Production.json`. Der prøves igen ved næste start.
    - `… blev sendt … Sendes igen ved en genstart efter 15 minutter`: en invitation er sendt for nylig. Vent 15 minutter og genstart app-poolen for at få en ny.
    - `Ingen brugere og ingen gyldig Bootstrap:AdminEmail`: adressen mangler eller er ikke en @tumlegaarden.dk-adresse.
 4. Ændrer du `Bootstrap:AdminEmail`, sendes en ny invitation til den nye adresse ved næste genstart. Den gamle bliver ugyldig.

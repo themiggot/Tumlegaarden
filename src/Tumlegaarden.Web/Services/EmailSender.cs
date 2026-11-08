@@ -13,6 +13,28 @@ public sealed class SmtpOptions
     public string Password { get; set; } = "";
     public string FromAddress { get; set; } = "";
     public string FromName { get; set; } = "Tumlegaarden";
+
+    /// <summary>
+    /// Kryptering: "StartTls" (kræver TLS, port 587), "SslOnConnect" (port 465),
+    /// "StartTlsWhenAvailable" (TLS hvis serveren tilbyder det) eller "None".
+    /// Tom = SslOnConnect på port 465, ellers StartTls.
+    /// </summary>
+    public string Security { get; set; } = "";
+
+    public SecureSocketOptions SocketOptions => Security.Trim().ToLowerInvariant() switch
+    {
+        "starttls" => SecureSocketOptions.StartTls,
+        "sslonconnect" or "ssl" => SecureSocketOptions.SslOnConnect,
+        "starttlswhenavailable" or "auto" => SecureSocketOptions.StartTlsWhenAvailable,
+        "none" => SecureSocketOptions.None,
+        "" => Port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls,
+        _ => throw new InvalidOperationException($"Ukendt Smtp:Security '{Security}'.")
+    };
+
+    /// <summary>Til loggen – uden adgangskode.</summary>
+    public override string ToString() =>
+        $"{Host}:{Port} ({SocketOptions}), login: {(string.IsNullOrEmpty(UserName) ? "intet" : UserName)}, " +
+        $"adgangskode: {(string.IsNullOrEmpty(Password) ? "mangler" : "sat")}, afsender: {FromAddress}";
 }
 
 public interface IAppEmailSender
@@ -20,7 +42,7 @@ public interface IAppEmailSender
     Task SendAsync(string to, string subject, string text);
 }
 
-/// <summary>Sender mail via Simply.com's SMTP med påkrævet TLS (STARTTLS på 587, SSL på 465).</summary>
+/// <summary>Sender mail via SMTP (hos Simply.com: websmtp.simply.com, som er beregnet til mail fra webhotellet).</summary>
 public sealed class SmtpEmailSender(IOptions<SmtpOptions> options, IHostEnvironment env, ILogger<SmtpEmailSender> logger) : IAppEmailSender
 {
     public async Task SendAsync(string to, string subject, string text)
@@ -43,13 +65,14 @@ public sealed class SmtpEmailSender(IOptions<SmtpOptions> options, IHostEnvironm
         message.Body = new TextPart("plain") { Text = text };
 
         using var client = new SmtpClient();
-        var socket = o.Port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls;
-        await client.ConnectAsync(o.Host, o.Port, socket);
+        client.Timeout = 20_000;
+        await client.ConnectAsync(o.Host, o.Port, o.SocketOptions);
         if (!string.IsNullOrEmpty(o.UserName))
         {
             await client.AuthenticateAsync(o.UserName, o.Password);
         }
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
+        logger.LogInformation("Mail sendt til {To} via {Host}:{Port}.", to, o.Host, o.Port);
     }
 }

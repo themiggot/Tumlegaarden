@@ -45,6 +45,7 @@ jobs:
           test -f publish/web.config
           test -f publish/Tumlegaarden.Web.exe
           grep -q enableShadowCopy publish/web.config
+          grep -q 'stdoutLogEnabled="true"' publish/web.config
           test ! -f publish/appsettings.Production.json
           test ! -f publish/appsettings.Development.json
 

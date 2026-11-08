@@ -164,6 +164,7 @@ builder.Services.AddHsts(o => o.MaxAge = TimeSpan.FromDays(365));
 
 var app = builder.Build();
 app.Logger.LogInformation("Datamappe: {DataDirectory}", appData);
+app.Logger.LogInformation("SMTP: {Smtp}", app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<SmtpOptions>>().Value);
 if (app.Environment.IsProduction() && DataDirectory.IsInside(appData, app.Environment.ContentRootPath))
     app.Logger.LogWarning("Datamappen ligger inde i web-mappen og kan blive slettet ved næste Git-import. Opret mappen ../{Folder}.", DataDirectory.DefaultFolderName);
 
