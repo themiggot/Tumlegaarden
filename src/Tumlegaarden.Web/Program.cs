@@ -142,7 +142,6 @@ builder.Services.AddAntiforgery(o =>
 // Alt kræver login MED to-faktor og en rolle, medmindre en side udtrykkeligt siger andet.
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(Policies.RoleAtLeast(Roles.Borler))
-    .AddPolicy(Policies.BorlerOrHigher, Policies.RoleAtLeast(Roles.Borler))
     .AddPolicy(Policies.DiktatorOrHigher, Policies.RoleAtLeast(Roles.Diktator))
     .AddPolicy(Policies.Administrator, Policies.RoleAtLeast(Roles.Administrator))
     .AddPolicy(Policies.PasswordOnly, p => p.RequireAuthenticatedUser());

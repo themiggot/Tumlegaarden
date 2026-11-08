@@ -22,4 +22,8 @@
     <ProjectReference Include="..\..\src\Tumlegaarden.Web\Tumlegaarden.Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

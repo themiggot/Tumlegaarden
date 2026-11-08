@@ -8,7 +8,7 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 - **Startside** efter login (`/`, via den gule "Start"-knap i menuen eller ved klik på "Tumlegaarden"): "Tumlegaarden – Det online paradis", officielt game og reglementet. Teksten står i `Pages/Index.cshtml`.
 - **Kalender** på `/Calendar`. Begivenheder har startdato og evt. tidspunkt, en valgfri slutdato/-tid (så de kan vare flere dage), navn og brødtekst, ligger i tabellen `Events` og foldes ud ved klik (HTML `<details>`, ingen JavaScript).
 - **Deltagelse:** alle kan svare *Deltager* eller *Deltager ikke* på en begivenhed (tabellen `EventResponses`). Samme knap igen fjerner svaret.
-- **Albums:** alle kan oprette albums og uploade billeder (JPEG, PNG, WebP, GIF). Billederne kodes om med [ImageSharp](https://github.com/SixLabors/ImageSharp): orientering rettes, GPS og andre metadata fjernes, og der gemmes en version på højst 2048 px plus en miniature. Filerne ligger i `/tumlegaarden-data/albums` uden for web-mappen og udleveres kun til brugere, der er logget ind. Maks. størrelse pr. billede (standard 5 MB) styres af administratorer under **Indstillinger** (tabellen `Settings`).
+- **Albums:** alle kan oprette albums og uploade billeder (JPEG, PNG, WebP, GIF). Billederne kodes om med [SkiaSharp](https://github.com/mono/SkiaSharp): orientering rettes, GPS og andre metadata fjernes, og der gemmes en version på højst 2048 px plus en miniature. Filerne ligger i `/tumlegaarden-data/albums` uden for web-mappen og udleveres kun til brugere, der er logget ind. Maks. størrelse pr. billede (standard 5 MB) styres af administratorer under **Indstillinger** (tabellen `Settings`).
 - **Chatbeskeder slettes efter 24 timer** af et baggrundsjob (hvert kvarter og ved opstart). Gamle beskeder vises heller ikke, selv hvis appen har været i dvale, og jobbet ikke har kørt.
 - **Disclaimer** ved første besøg: privat side uden kommercielle interesser, kun for inviterede. Skal bekræftes med OK. Indeholder også cookie-informationen.
 - **Chat** nederst til højre på alle sider. Rummet "Alle" er for alle brugere. Diktatorer og administratorer opretter rum og vælger medlemmer under **Indstillinger** og kan se alle rum. Alle beskeder slettes automatisk efter 24 timer. Uden JavaScript virker chatten som en almindelig side på `/Chat`.
@@ -20,7 +20,7 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 
 | Niveau | Rettigheder |
 |---|---|
-| **Administrator** | Alt. Eneste der kan invitere nye brugere og ændre **Indstillinger**. Kan redigere alle andre brugere og tildele alle niveauer. |
+| **Administrator** | Alt. Eneste der kan invitere nye brugere og ændre billedstørrelsen under **Indstillinger**. Kan redigere alle andre brugere og tildele alle niveauer. |
 | **Diktator** | Kan oprette chatrum og vælge medlemmer, og se alle rum. Kan redigere børlere (niveau, lås, nulstil to-faktor, slet) og gøre dem til diktator. Kan rette og slette alle begivenheder, albums og billeder. |
 | **Børler** | Kan oprette begivenheder og albums, uploade billeder og rette/slette sit eget indhold. |
 
@@ -59,12 +59,6 @@ Simply.com tilbyder **ikke** en SSO-/OpenID Connect-tjeneste, som et website kan
 Derfor har sitet sine egne konti, beskyttet som beskrevet ovenfor. Hvis Tumlegaarden senere får Microsoft 365 eller Google Workspace,
 kan der tilføjes rigtig SSO (OpenID Connect) med ganske få linjer i `Program.cs`, begrænset til tumlegaarden.dk-tenanten.
 
-## Browserdemo
-
-`demo/tumlegaarden-demo.html` er en version af sitet, der kører helt i browseren (publiceret som artefakt i Claude), så flowet kan afprøves uden server.
-Den har samme regler, roller og tema, plus en indbakke og en authenticator, så man ikke behøver mailserver eller telefon.
-Den er kun til at teste. Den rigtige sikkerhed ligger i ASP.NET-projektet.
-
 ## TypeScript
 
 Sitet bruger kun lidt JavaScript, og alt virker også uden:
@@ -86,11 +80,11 @@ GitHub Actions stopper bygget, hvis filerne i `wwwroot/js` ikke passer til `Scri
 dotnet test tests/Tumlegaarden.Tests
 ```
 
-Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data), domænekontrollen af e-mails og rangreglerne for redigering af brugere. Kører også ved hvert byg på GitHub.
+Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data), domænekontrollen af e-mails, rangreglerne for redigering af brugere og billedbehandlingen (alle 8 EXIF-orienteringer, fjernelse af metadata, formater og afvisning af ikke-billeder; testbillederne ligger i `tests/Tumlegaarden.Tests/Fixtures`). Kører også ved hvert byg på GitHub.
 
 ## Tredjepartskomponenter
 
-- **ImageSharp 3.1** (Six Labors Split License): gratis under Apache 2.0 for private og ikke-kommercielle brugere og for open source. Version 4 kræver en licensnøgle og bruges derfor ikke.
+- **SkiaSharp** (MIT): billedbehandling i albums. Erstattede ImageSharp, hvis version 3.1 har kendte sikkerhedshuller, og hvis rettede versioner kræver en licensnøgle.
 - **MailKit**, **QRCoder**, **MySql.EntityFrameworkCore**: MIT/GPL-kompatible open source-licenser.
 - **Skrifttyper:** DotGothic16 og Silkscreen (SIL Open Font License), ligger i `wwwroot/fonts`.
 - **IP-data:** NRO via ip-location-db (CC BY 4.0), se `GeoData/LICENSE-NRO.txt`.

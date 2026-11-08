@@ -72,7 +72,10 @@ public static partial class SchemaUpdater
                     log.LogError("Kolonnen {Table}.{Column} mangler og kan ikke tilføjes automatisk (den må ikke være tom).", table, column);
                     continue;
                 }
+                // Tabel, kolonne og type kommer fra EF-modellen (ikke fra brugere) og er citeret af databaseudbyderen.
+#pragma warning disable EF1002
                 await db.Database.ExecuteSqlRawAsync($"ALTER TABLE {quotedTable} ADD {quotedColumn} {property.GetColumnType()} NULL");
+#pragma warning restore EF1002
                 log.LogInformation("Tilføjede manglende kolonne {Table}.{Column}.", table, column);
             }
         }

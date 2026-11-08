@@ -54,8 +54,6 @@ public sealed class InvitationService(AppDbContext db, TimeProvider time)
         return open.Where(i => i.IsPending(Now)).OrderByDescending(i => i.CreatedUtc).ToList();
     }
 
-    public async Task<bool> AnyPendingAsync() => (await PendingAsync()).Count > 0;
-
     public async Task MarkUsedAsync(Invitation invitation)
     {
         invitation.UsedUtc = Now;

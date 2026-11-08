@@ -29,15 +29,14 @@ Simply.com:
 
 ---
 
-## 1. Tjek at webhotellet kan køre ASP.NET
+## 1. Webhotellet
 
-Sitet er en ASP.NET Core 10-app og kræver Simply's Windows/IIS-hosting med ASP.NET. Et rent PHP/Linux-webhotel kan ikke køre det.
+Sitet er en ASP.NET Core 10-app og kører på Simply's Windows/IIS-hosting med ASP.NET. Det er afprøvet på tumlegaarden.dk.
 
-1. Se under **Website → Oversigt** og **Administration**, om der står ASP.NET, .NET eller Windows.
-2. Er du i tvivl, så skriv til Simply's support:
-   > Understøtter webhotellet for tumlegaarden.dk ASP.NET Core 10 som self-contained app, skal vi udgive til win-x64 eller win-x86, og må appen læse og skrive i mapper ved siden af public_html?
-3. Sitet bygges som **32-bit (`win-x86`)**, fordi Simply's app-pool kører 32-bit. En 64-bit-pakke giver *HTTP Error 500.32 – Failed to load .NET Core host*.
-   Skulle Simply en dag skifte til 64-bit, så opret repo-variablen `RUNTIME` med værdien `win-x64` under **Settings → Secrets and variables → Actions → Variables** og kør **Actions → Byg og udgiv → Run workflow**.
+- Sitet bygges som **32-bit (`win-x86`)**, fordi Simply's app-pool kører 32-bit. En 64-bit-pakke giver *HTTP Error 500.32 – Failed to load .NET Core host*.
+- Skulle Simply en dag skifte til 64-bit, så opret repo-variablen `RUNTIME` med værdien `win-x64` under **Settings → Secrets and variables → Actions → Variables** og kør **Actions → Byg og udgiv → Run workflow**.
+- Appen skal kunne læse og skrive i mapper ved siden af `public_html` (`/tumlegaarden-data`, `/tumlegaarden-logs`, `/tumlegaarden-shadow`). Det virker hos Simply.
+- Efter mange opstartsfejl i træk kan IIS stoppe app-poolen (HTTP 503). Genstart den i kontrolpanelet.
 
 ---
 
