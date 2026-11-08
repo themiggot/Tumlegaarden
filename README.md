@@ -44,6 +44,12 @@ Simply.com tilbyder **ikke** en SSO-/OpenID Connect-tjeneste, som et website kan
 Derfor har sitet sine egne konti, beskyttet som beskrevet ovenfor. Hvis Tumlegaarden senere får Microsoft 365 eller Google Workspace,
 kan der tilføjes rigtig SSO (OpenID Connect) med ganske få linjer i `Program.cs`, begrænset til tumlegaarden.dk-tenanten.
 
+## Browserdemo
+
+`demo/tumlegaarden-demo.html` er en version af sitet, der kører helt i browseren (publiceret som artefakt i Claude), så flowet kan afprøves uden server.
+Den har samme regler, roller og tema, plus en indbakke og en authenticator, så man ikke behøver mailserver eller telefon.
+Den er kun til at teste. Den rigtige sikkerhed ligger i ASP.NET-projektet.
+
 ## Kør lokalt
 
 ```bash

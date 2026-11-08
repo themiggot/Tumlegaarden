@@ -1,0 +1,742 @@
+<title>Tumlegaarden</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Silkscreen&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+/* Layout: 16-bit skrivebord. Appens vindue til venstre, demo-værktøjer i et smallere vindue til højre (stables på telefon).
+   Bevidst ét tema: mørkt skrivebord med lyse vinduer, samme som ASP.NET-sitet. */
+:root {
+    color-scheme: dark;
+    --desk: #23303f;
+    --desk-dot: #2b3b4d;
+    --face: #d4cfc2;
+    --face-hi: #f3f0e8;
+    --face-lo: #8d887c;
+    --edge: #12171f;
+    --field: #fbfaf6;
+    --ink: #1a1e26;
+    --muted: #575b62;
+    --title: #2f5d62;
+    --title-stripe: #3a6e73;
+    --demo-title: #4a4560;
+    --demo-stripe: #574f70;
+    --accent: #b5523b;
+    --accent-hi: #d97a60;
+    --accent-lo: #7c3426;
+    --link: #1d5a85;
+    --desk-text: #b9c2cc;
+    --ok: #3f6e35;
+    --warn: #9a6e1f;
+    --err: #a3313c;
+    --err-field: #fbe9e9;
+    --font-display: "Silkscreen", "Pixelify Sans", ui-monospace, monospace;
+    --font-body: "Pixelify Sans", ui-monospace, "Courier New", monospace;
+    --font-code: ui-monospace, "Courier New", monospace;
+    --b: 2px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink);
+    background-color: var(--desk);
+    background-image: radial-gradient(var(--desk-dot) 1px, transparent 1.5px);
+    background-size: 6px 6px;
+    -webkit-font-smoothing: none;
+}
+a { color: var(--link); }
+:focus-visible { outline: var(--b) dashed var(--accent); outline-offset: 3px; }
+button.linklike { font: inherit; color: var(--link); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+
+/* Topbar */
+.topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; width: 100%; max-width: 1200px; margin: 0 auto; padding-block: 28px 8px; }
+.logo { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 6vw, 44px); line-height: 1; }
+.logo button { font: inherit; color: var(--face-hi); background: none; border: 0; padding: 0; cursor: pointer; text-shadow: 3px 3px 0 var(--edge); }
+.topnav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.topnav .linklike { color: var(--face-hi); font-weight: 700; }
+.who { color: var(--desk-text); font-size: 15px; overflow-wrap: anywhere; }
+
+/* Skal */
+.shell { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 28px; width: 100%; max-width: 1200px; margin: 0 auto; padding-block: 24px 48px; align-items: start; }
+.stage { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+.demo { display: flex; flex-direction: column; gap: 20px; min-width: 0; position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); }
+@media (max-width: 900px) { .shell { grid-template-columns: minmax(0, 1fr); } .demo { position: static; } }
+
+/* Vinduer */
+.window { width: 100%; max-width: 460px; margin: 0 auto; background: var(--face); padding: 4px;
+    box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 var(--face-hi), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 var(--face-lo), 6px 6px 0 2px rgba(0, 0, 0, .35); }
+.window-wide { max-width: 860px; }
+.demo .window { max-width: none; }
+.window-title { position: relative; margin: 0; padding: 6px 10px 6px 34px; font-family: var(--font-display); font-weight: 400; font-size: 15px; letter-spacing: .04em; color: var(--face-hi);
+    background: repeating-linear-gradient(var(--title) 0 3px, var(--title-stripe) 3px 5px); }
+.demo .window-title { background: repeating-linear-gradient(var(--demo-title) 0 3px, var(--demo-stripe) 3px 5px); }
+.window-title::before { content: ""; position: absolute; left: 10px; top: 50%; width: 12px; height: 12px; transform: translateY(-50%); background: var(--face); box-shadow: 0 0 0 var(--b) var(--edge), inset -2px -2px 0 var(--face-lo); }
+.window-body { padding: 18px 18px 22px; }
+.window-body > :first-child { margin-top: 0; }
+.window-body p { margin: 0 0 14px; }
+.window-body h3 { margin: 22px 0 10px; font-family: var(--font-display); font-weight: 400; font-size: 14px; letter-spacing: .03em; text-wrap: balance; }
+.prose { max-width: 70ch; }
+.hint { color: var(--muted); font-size: 15px; }
+
+/* Formularer */
+form { margin: 0; }
+label { display: block; margin: 14px 0 6px; font-weight: 700; font-size: 15px; }
+input:not([type="checkbox"]), select { display: block; width: 100%; padding: 8px 10px; font: inherit; color: var(--ink); background: var(--field); border: 0; border-radius: 0;
+    box-shadow: inset var(--b) var(--b) 0 var(--face-lo), inset calc(var(--b) * 2) calc(var(--b) * 2) 0 var(--edge), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 var(--face-hi); }
+input[readonly] { background: var(--face); color: var(--muted); }
+input[aria-invalid="true"] { background: var(--err-field); }
+select { width: auto; min-width: 9em; }
+input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); vertical-align: -2px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.btn { display: inline-block; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--ink); text-decoration: none; background: var(--face); border: 0; border-radius: 0; cursor: pointer;
+    box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 var(--face-hi), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 var(--face-lo); }
+.btn:active { box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 var(--face-lo), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 var(--face-hi); padding: 9px 17px 7px 19px; }
+.btn[disabled] { opacity: .6; cursor: progress; }
+.btn-primary { color: var(--face-hi); background: var(--accent); box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 var(--accent-hi), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 var(--accent-lo); }
+.btn-primary:active { box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 var(--accent-lo), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 var(--accent-hi); }
+.btn-danger { color: var(--face-hi); background: var(--err); }
+.btn-small { padding: 3px 10px; font-size: 15px; }
+.btn-small:active { padding: 4px 9px 2px 11px; }
+.links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 20px; font-size: 15px; }
+.rules { margin: 16px 0 0; padding: 10px 12px 10px 30px; font-size: 15px; color: var(--muted); background: var(--face-hi); box-shadow: inset 0 0 0 1px var(--face-lo); list-style: square; }
+
+/* Beskeder */
+.msg { margin: 0 0 14px; padding: 10px 12px; color: var(--face-hi); box-shadow: 0 0 0 var(--b) var(--edge); }
+.msg ul { margin: 0; padding-left: 18px; }
+.msg p { margin: 0 0 8px; }
+.msg p:last-child { margin: 0; }
+.msg-err { background: var(--err); }
+.msg-ok { background: var(--ok); }
+.msg .key { color: var(--ink); }
+.status { width: 100%; max-width: 860px; margin: 0 auto; }
+
+/* Roller og mærker */
+.role, .tag { display: inline-block; padding: 0 8px; font-size: 14px; font-weight: 700; color: var(--face-hi); box-shadow: 0 0 0 var(--b) var(--edge); white-space: nowrap; }
+.role-administrator, .tag-err { background: var(--err); }
+.role-diktator, .tag-warn { background: var(--warn); }
+.role-borler, .tag-ok { background: var(--ok); }
+
+/* Tabeller */
+.table-wrap { overflow-x: auto; background: var(--field); box-shadow: inset 0 0 0 var(--b) var(--face-lo); }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th, td { padding: 8px 10px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--face); }
+th { font-family: var(--font-display); font-weight: 400; font-size: 12px; letter-spacing: .04em; background: var(--face-hi); }
+td { overflow-wrap: anywhere; }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.inline select { min-width: 0; padding: 3px 6px; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.confirm { display: inline-flex; gap: 4px; align-items: center; margin: 0; font-weight: 400; font-size: 14px; }
+.invite-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 16px; }
+.invite-form .msg { flex-basis: 100%; }
+.field { flex: 1 1 220px; min-width: 0; }
+.field-action { flex: 0 0 auto; padding-top: 14px; }
+
+/* 2FA */
+.qr { display: flex; justify-content: center; margin: 0 auto 14px; padding: 10px; width: fit-content; background: var(--field); box-shadow: 0 0 0 var(--b) var(--edge); }
+.qr img, .qr canvas { image-rendering: pixelated; }
+code { font-family: var(--font-code); font-size: 15px; }
+.key { display: block; padding: 8px 10px; background: var(--field); overflow-wrap: anywhere; user-select: all; box-shadow: inset 0 0 0 1px var(--face-lo); }
+.codes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0 0 14px; padding: 10px; list-style: none; background: var(--field); }
+
+/* Demo-panel */
+.demo .window-body { padding: 14px 14px 16px; font-size: 15px; }
+.inbox { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mail { background: var(--field); box-shadow: inset 0 0 0 1px var(--face-lo); padding: 8px 10px; }
+.mail-new { box-shadow: inset 0 0 0 var(--b) var(--accent); }
+.mail-head { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.mail-subject { font-weight: 700; margin: 2px 0 6px; }
+.mail-body { white-space: pre-wrap; font-size: 14px; margin: 0 0 8px; overflow-wrap: anywhere; }
+.otp { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.otp li { background: var(--field); box-shadow: inset 0 0 0 1px var(--face-lo); padding: 8px 10px; }
+.otp-mail { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.otp-code { font-family: var(--font-display); font-size: 24px; letter-spacing: .12em; font-variant-numeric: tabular-nums; }
+.otp-bar { height: 6px; background: var(--face); box-shadow: inset 0 0 0 1px var(--face-lo); }
+.otp-bar span { display: block; height: 100%; background: var(--title); }
+.empty { color: var(--muted); font-size: 14px; margin: 0; }
+
+/* Bund og cookie-meddelelse */
+.footer { padding-block: 0 24px; text-align: center; font-size: 14px; }
+.footer .linklike { color: var(--desk-text); }
+.cookie-notice { position: sticky; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 10; width: 100%; max-width: 1200px; margin: 0 auto 12px; }
+.cookie-notice .window { max-width: none; }
+.cookie-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; padding: 12px 14px; }
+.cookie-inner p { margin: 0; flex: 1 1 320px; font-size: 15px; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 480px) { .window-body { padding: 14px 12px 18px; } .codes { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .btn:active { padding: 8px 18px; } .btn-small:active { padding: 3px 10px; } }
+</style>
+
+<header class="topbar" id="topbar"></header>
+<div class="shell">
+    <main class="stage" id="app" aria-live="polite"></main>
+    <aside class="demo" id="demo" aria-label="Demo-værktøjer"></aside>
+</div>
+<footer class="footer"><button type="button" class="linklike" data-go="cookies">Cookies og privatliv</button></footer>
+<div id="cookie"></div>
+
+<script>
+"use strict";
+/* Tumlegaarden – browserdemo af ASP.NET-sitet. Samme regler og flow, men alt kører lokalt i browseren.
+   Adgangskoder hashes med PBKDF2-SHA512 (210.000 iterationer), invitationstokens gemmes som SHA-256, TOTP er rigtig RFC 6238. */
+
+const DOMAIN = "tumlegaarden.dk";
+const ROLES = ["Administrator", "Diktator", "Børler"];
+const ROLE_CSS = { "Administrator": "administrator", "Diktator": "diktator", "Børler": "borler" };
+const KEY = "tumlegaarden-demo-v1";
+const ITERATIONS = 210000;
+const INVITE_HOURS = 72;
+const LOCK_MAX = 8.64e15;
+const FORBIDDEN = ["tumlegaarden", "tumlegården", "password", "passw0rd", "kodeord", "adgangskode", "123456", "654321", "qwerty", "asdfgh", "letmein", "welcome", "velkommen", "sommer", "vinter"];
+const GENERIC_LOGIN = "Login mislykkedes. Tjek e-mail og adgangskode.";
+const LOCKED = "For mange fejlede forsøg. Kontoen er låst i 15 minutter.";
+
+/* ---------- Lager ---------- */
+function blank() { return { users: [], invites: [], mails: [], seq: 0, cookieOk: false, seeded: false }; }
+function load() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch { return null; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { /* demoen virker også uden lager */ } }
+let db = load() || blank();
+let session = null;              // { email, amr: "pwd" | "mfa" } eller { pending: email }
+let view = { name: "login", params: {} };
+let ui = { errors: [], status: null, values: {}, extra: null };
+let confirmReset = false;
+
+/* ---------- Hjælpere ---------- */
+const enc = new TextEncoder();
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const rand = (n) => crypto.getRandomValues(new Uint8Array(n));
+const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const b64url = (buf) => b64(buf).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const hex = (buf) => [...new Uint8Array(buf)].map((x) => x.toString(16).padStart(2, "0")).join("");
+const sha256 = async (s) => hex(await crypto.subtle.digest("SHA-256", enc.encode(s)));
+const norm = (e) => String(e || "").trim().toLowerCase();
+const userBy = (email) => db.users.find((u) => u.email === norm(email));
+const me = () => (session && session.email ? userBy(session.email) : null);
+const fmt = (t) => new Date(t).toLocaleString("da-DK", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const roleBadge = (r) => `<span class="role role-${ROLE_CSS[r]}">${esc(r)}</span>`;
+
+function emailAllowed(email) {
+    const e = String(email || "");
+    if (e !== e.trim() || e.length > 254) return false;
+    const m = /^([^@\s]{1,64})@([^@\s]+)$/.exec(e);
+    if (!m || !/^[A-Za-z0-9._%+\-]+$/.test(m[1]) || m[1].startsWith(".") || m[1].endsWith(".") || m[1].includes("..")) return false;
+    return m[2].toLowerCase() === DOMAIN;
+}
+
+async function pbkdf2(password, salt) {
+    const key = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
+    return b64(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-512", salt, iterations: ITERATIONS }, key, 256));
+}
+async function hashPassword(pw) { const salt = rand(16); return { salt: b64(salt), hash: await pbkdf2(pw, salt) }; }
+async function verifyPassword(pw, user) {
+    const salt = Uint8Array.from(atob(user.salt), (c) => c.charCodeAt(0));
+    const h = await pbkdf2(pw, salt);
+    let diff = h.length ^ user.hash.length;
+    for (let i = 0; i < Math.min(h.length, user.hash.length); i++) diff |= h.charCodeAt(i) ^ user.hash.charCodeAt(i);
+    return diff === 0;
+}
+
+function passwordErrors(pw, email) {
+    const e = [];
+    if (pw.length < 14) e.push("Adgangskoden skal være mindst 14 tegn.");
+    if (pw.length > 128) e.push("Adgangskoden må højst være 128 tegn.");
+    if (!/[^\p{L}\p{N}]/u.test(pw)) e.push("Adgangskoden skal indeholde mindst ét specialtegn (fx ! # % &).");
+    if (!/\p{N}/u.test(pw)) e.push("Adgangskoden skal indeholde mindst ét tal.");
+    if (!/\p{Ll}/u.test(pw)) e.push("Adgangskoden skal indeholde mindst ét lille bogstav.");
+    if (!/\p{Lu}/u.test(pw)) e.push("Adgangskoden skal indeholde mindst ét stort bogstav.");
+    if (new Set(pw).size < 6) e.push("Adgangskoden skal indeholde mindst 6 forskellige tegn.");
+    const lower = pw.toLowerCase(), local = norm(email).split("@")[0];
+    if (local.length >= 3 && lower.includes(local)) e.push("Adgangskoden må ikke indeholde din e-mailadresse.");
+    if (FORBIDDEN.some((w) => lower.includes(w))) e.push("Adgangskoden indeholder et alt for almindeligt ord eller mønster.");
+    if (/(.)\1\1\1/u.test(pw)) e.push("Adgangskoden må ikke have samme tegn 4 gange i træk.");
+    return e;
+}
+
+/* ---------- TOTP (RFC 6238) ---------- */
+const B32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+function b32encode(bytes) { let bits = "", out = ""; for (const b of bytes) bits += b.toString(2).padStart(8, "0"); for (let i = 0; i + 5 <= bits.length; i += 5) out += B32[parseInt(bits.slice(i, i + 5), 2)]; return out; }
+function b32decode(s) { let bits = ""; for (const c of s.toUpperCase().replace(/[\s=]/g, "")) bits += B32.indexOf(c).toString(2).padStart(5, "0"); return Uint8Array.from(bits.match(/.{8}/g), (b) => parseInt(b, 2)); }
+async function totp(secret, t = Date.now()) {
+    const key = await crypto.subtle.importKey("raw", b32decode(secret), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+    const ctr = new ArrayBuffer(8), dv = new DataView(ctr), c = Math.floor(t / 30000);
+    dv.setUint32(0, Math.floor(c / 2 ** 32)); dv.setUint32(4, c >>> 0);
+    const h = new Uint8Array(await crypto.subtle.sign("HMAC", key, ctr)), o = h[19] & 15;
+    return String((((h[o] & 127) << 24) | (h[o + 1] << 16) | (h[o + 2] << 8) | h[o + 3]) % 1e6).padStart(6, "0");
+}
+async function totpValid(secret, code) {
+    code = String(code).replace(/[\s-]/g, "");
+    if (!/^\d{6}$/.test(code)) return false;
+    for (const d of [-30000, 0, 30000]) if ((await totp(secret, Date.now() + d)) === code) return true;
+    return false;
+}
+const groupKey = (k) => k.toLowerCase().match(/.{1,4}/g).join(" ");
+
+/* ---------- Domæne ---------- */
+function sendMail(to, subject, body, link) {
+    db.mails.unshift({ id: ++db.seq, to, subject, body, link, at: Date.now(), read: false });
+    save();
+}
+async function createInvite(email, role, by) {
+    for (const i of db.invites) if (i.email === norm(email) && !i.used && !i.revoked) i.revoked = Date.now();
+    const token = b64url(rand(32));
+    db.invites.push({ id: ++db.seq, email: norm(email), role, tokenHash: await sha256(token), by, created: Date.now(), expires: Date.now() + INVITE_HOURS * 3600e3 });
+    save();
+    return token;
+}
+const pendingInvites = () => db.invites.filter((i) => !i.used && !i.revoked && i.expires > Date.now()).sort((a, b) => b.created - a.created);
+async function findInvite(token) {
+    if (!token) return null;
+    const h = await sha256(token);
+    const i = db.invites.find((x) => x.tokenHash === h);
+    return i && !i.used && !i.revoked && i.expires > Date.now() ? i : null;
+}
+const inviteBody = (role, token) =>
+    `Du er inviteret til Tumlegaarden som ${role}.\n\nÅbn linket for at vælge din adgangskode og sætte to-faktor op. Linket virker én gang og udløber om ${INVITE_HOURS} timer:\nhttps://${DOMAIN}/Account/AcceptInvitation?token=${token.slice(0, 10)}…`;
+const isLocked = (u) => u.lockoutEnd && u.lockoutEnd > Date.now();
+function failAttempt(u) {
+    u.failed = (u.failed || 0) + 1;
+    if (u.failed >= 5) { u.lockoutEnd = Date.now() + 15 * 60e3; u.failed = 0; }
+    save();
+}
+
+async function seed() {
+    if (db.seeded) return;
+    db.seeded = true;
+    const token = await createInvite("admin@" + DOMAIN, "Administrator", "system");
+    sendMail("admin@" + DOMAIN, "Tumlegaarden: Du er inviteret som administrator", inviteBody("Administrator", token), { view: "accept", token });
+}
+
+/* ---------- Navigation ---------- */
+function go(name, params = {}, status = null) {
+    view = { name, params };
+    ui = { errors: [], status, values: {}, extra: null };
+    render();
+    window.scrollTo({ top: 0 });
+}
+function fail(errors, values = {}) {
+    ui.errors = Array.isArray(errors) ? errors : [errors];
+    ui.values = values;
+    ui.status = null;
+    render();
+}
+
+/* ---------- Visninger ---------- */
+const errorBox = () => ui.errors.length ? `<div class="msg msg-err" role="alert"><ul>${ui.errors.map((e) => `<li>${esc(e)}</li>`).join("")}</ul></div>` : "";
+const win = (title, body, wide = false) => `<section class="window${wide ? " window-wide" : ""}"><h2 class="window-title">${esc(title)}</h2><div class="window-body">${body}</div></section>`;
+const rules = `<ul class="rules"><li>Mindst 14 tegn</li><li>Store og små bogstaver, tal og specialtegn</li><li>Mindst 6 forskellige tegn</li><li>Ikke din e-mail, almindelige ord eller lækkede koder</li></ul>`;
+const submit = (label, cls = "btn-primary") => `<div class="actions"><button type="submit" class="btn ${cls}">${esc(label)}</button></div>`;
+
+const views = {
+    login: () => win("Log ind", `
+        <p class="hint">Kun for @${DOMAIN}. Nye brugere skal inviteres af en administrator.</p>
+        <form data-form="login" novalidate>${errorBox()}
+            <label for="login-email">E-mail</label>
+            <input id="login-email" name="email" type="email" autocomplete="username" value="${esc(ui.values.email)}">
+            <label for="login-password">Adgangskode</label>
+            <input id="login-password" name="password" type="password" autocomplete="current-password">
+            ${submit("Log ind")}
+        </form>
+        <nav class="links"><button type="button" class="linklike" data-go="forgot">Glemt adgangskode?</button></nav>`),
+
+    twofa: () => win("Kode fra app", `
+        <p>Indtast den 6-cifrede kode fra din authenticator-app.</p>
+        <form data-form="twofa" novalidate>${errorBox()}
+            <label for="twofa-code">Kode</label>
+            <input id="twofa-code" name="code" inputmode="numeric" autocomplete="one-time-code">
+            ${submit("OK")}
+        </form>
+        <nav class="links"><button type="button" class="linklike" data-go="recovery">Brug en gendannelseskode</button></nav>`),
+
+    recovery: () => win("Gendannelse", `
+        <p>Har du mistet adgang til din app, kan du bruge én af dine gendannelseskoder. Hver kode virker kun én gang.</p>
+        <form data-form="recovery" novalidate>${errorBox()}
+            <label for="recovery-code">Gendannelseskode</label>
+            <input id="recovery-code" name="code" autocomplete="off">
+            ${submit("OK")}
+        </form>`),
+
+    setup2fa: () => {
+        const u = me();
+        const uri = `otpauth://totp/Tumlegaarden:${encodeURIComponent(u.email)}?secret=${u.pendingSecret}&issuer=Tumlegaarden&digits=6&period=30`;
+        ui.extra = { qr: uri };
+        return win("To-faktor", `
+            <p>To-faktor er påkrævet. Scan QR-koden med en authenticator-app (fx Microsoft Authenticator, Google Authenticator eller 1Password). I demoen kan du også bruge koden i panelet Authenticator.</p>
+            <div class="qr" id="qr" role="img" aria-label="QR-kode til authenticator-app"></div>
+            <p class="hint">Kan du ikke scanne? Indtast nøglen manuelt:</p>
+            <p><code class="key">${esc(groupKey(u.pendingSecret))}</code></p>
+            <form data-form="setup2fa" novalidate>${errorBox()}
+                <label for="setup-code">Kode fra app</label>
+                <input id="setup-code" name="code" inputmode="numeric" autocomplete="one-time-code">
+                ${submit("Aktivér")}
+            </form>`);
+    },
+
+    codes: () => win("To-faktor", `
+        <p class="msg msg-ok">To-faktor er slået til.</p>
+        <h3>Gem dine gendannelseskoder</h3>
+        <p>Skriv koderne ned og gem dem et sikkert sted. De vises kun denne ene gang, og hver kode virker én gang, hvis du mister din telefon.</p>
+        <ul class="codes">${view.params.codes.map((c) => `<li><code>${esc(c)}</code></li>`).join("")}</ul>
+        <div class="actions"><button type="button" class="btn btn-primary" data-go="home">Fortsæt</button></div>`),
+
+    accept: () => {
+        const inv = ui.extra && ui.extra.invite;
+        if (!inv) return win("Invitation", `<p class="msg msg-err">Invitationen er ugyldig, allerede brugt eller udløbet. Bed en administrator om en ny.</p>
+            <div class="actions"><button type="button" class="btn" data-go="login">Til login</button></div>`);
+        return win("Invitation", `
+            <p>Du er inviteret som ${roleBadge(inv.role)}. Vælg en adgangskode. Bagefter sætter du to-faktor op.</p>
+            <form data-form="accept" novalidate>${errorBox()}
+                <label for="accept-email">E-mail</label>
+                <input id="accept-email" value="${esc(inv.email)}" autocomplete="username" readonly>
+                <label for="accept-password">Adgangskode</label>
+                <input id="accept-password" name="password" type="password" autocomplete="new-password">
+                <label for="accept-confirm">Gentag adgangskode</label>
+                <input id="accept-confirm" name="confirm" type="password" autocomplete="new-password">
+                ${rules}
+                ${submit("Opret konto")}
+            </form>`);
+    },
+
+    forgot: () => win("Glemt kode", view.params.sent
+        ? `<p>Hvis adressen har en konto, har vi sendt et link til at nulstille adgangskoden.</p><div class="actions"><button type="button" class="btn" data-go="login">Til login</button></div>`
+        : `<form data-form="forgot" novalidate>${errorBox()}
+                <label for="forgot-email">E-mail</label>
+                <input id="forgot-email" name="email" type="email" autocomplete="username" value="${esc(ui.values.email)}">
+                ${submit("Send link")}
+            </form>
+            <nav class="links"><button type="button" class="linklike" data-go="login">Tilbage til login</button></nav>`),
+
+    reset: () => win("Ny kode", `
+        <form data-form="reset" novalidate>${errorBox()}
+            <label for="reset-email">E-mail</label>
+            <input id="reset-email" name="email" type="email" autocomplete="username" value="${esc(ui.values.email)}">
+            <label for="reset-password">Ny adgangskode</label>
+            <input id="reset-password" name="password" type="password" autocomplete="new-password">
+            <label for="reset-confirm">Gentag adgangskode</label>
+            <input id="reset-confirm" name="confirm" type="password" autocomplete="new-password">
+            ${rules}
+            ${submit("Gem")}
+        </form>`),
+
+    home: () => "",
+
+    admin: () => {
+        const self = me();
+        const users = [...db.users].sort((a, b) => ROLES.indexOf(a.role) - ROLES.indexOf(b.role) || a.email.localeCompare(b.email));
+        const pend = pendingInvites();
+        const newInvite = ui.extra && ui.extra.newInvite;
+        return win("Inviter bruger", `
+            ${newInvite ? `<div class="msg msg-ok" role="status"><p>Invitationen er sendt til ${esc(newInvite.email)} og ligger i demo-indbakken. Linket vises kun nu, hvis du vil give det videre på anden vis:</p><code class="key">${esc(newInvite.link)}</code></div>` : ""}
+            <form data-form="invite" class="invite-form" novalidate>${errorBox()}
+                <div class="field"><label for="invite-email">E-mail</label>
+                    <input id="invite-email" name="email" type="email" placeholder="navn@${DOMAIN}" value="${esc(ui.values.email)}"></div>
+                <div class="field"><label for="invite-role">Niveau</label>
+                    <select id="invite-role" name="role">${ROLES.map((r) => `<option ${r === (ui.values.role || "Børler") ? "selected" : ""}>${r}</option>`).join("")}</select></div>
+                <div class="field field-action"><button type="submit" class="btn btn-primary">Send invitation</button></div>
+            </form>
+            ${pend.length ? `<h3>Afventende invitationer</h3>
+            <div class="table-wrap"><table><thead><tr><th>E-mail</th><th>Niveau</th><th>Udløber</th><th></th></tr></thead><tbody>
+                ${pend.map((i) => `<tr><td>${esc(i.email)}</td><td>${roleBadge(i.role)}</td><td class="num">${fmt(i.expires)}</td>
+                    <td><button type="button" class="btn btn-small" data-action="revoke" data-id="${i.id}">Træk tilbage</button></td></tr>`).join("")}
+            </tbody></table></div>` : ""}`, true)
+        + win("Brugere", `
+            <p class="hint">Niveauer fra flest til færrest rettigheder: Administrator, Diktator, Børler. Kun administratorer kan invitere og ændre brugere.</p>
+            <div class="table-wrap"><table><thead><tr><th>E-mail</th><th>Niveau</th><th>Status</th><th>Handlinger</th></tr></thead><tbody>
+            ${users.map((u) => {
+                const isSelf = u.email === self.email, id = esc(u.email);
+                const status = isLocked(u) ? `<span class="tag tag-err">Låst</span>` : !u.twoFactor ? `<span class="tag tag-warn">Mangler 2FA</span>` : `<span class="tag tag-ok">Aktiv</span>`;
+                return `<tr>
+                    <td>${esc(u.email)}${isSelf ? ` <span class="hint">(dig)</span>` : ""}</td>
+                    <td>${isSelf ? roleBadge(u.role) : `<form data-form="role" data-id="${id}" class="inline">
+                        <label class="sr-only" for="role-${id}">Niveau for ${id}</label>
+                        <select id="role-${id}" name="role">${ROLES.map((r) => `<option ${r === u.role ? "selected" : ""}>${r}</option>`).join("")}</select>
+                        <button type="submit" class="btn btn-small">Gem</button></form>`}</td>
+                    <td>${status}</td>
+                    <td>${isSelf ? "" : `<div class="row-actions">
+                        <button type="button" class="btn btn-small" data-action="${isLocked(u) ? "unlock" : "lock"}" data-id="${id}">${isLocked(u) ? "Lås op" : "Lås"}</button>
+                        ${u.twoFactor ? `<button type="button" class="btn btn-small" data-action="reset2fa" data-id="${id}">Nulstil 2FA</button>` : ""}
+                        <form data-form="delete" data-id="${id}" class="inline">
+                            <label class="confirm"><input type="checkbox" name="confirm" id="del-${id}"> Bekræft</label>
+                            <button type="submit" class="btn btn-small btn-danger">Slet</button></form>
+                    </div>`}</td></tr>`;
+            }).join("")}
+            </tbody></table></div>`, true);
+    },
+
+    cookies: () => win("Cookies og privatliv", `<div class="prose">
+        <p>Tumlegaarden bruger kun cookies, der er <strong>nødvendige</strong> for at du kan logge sikkert ind. Vi bruger ingen cookies til statistik, markedsføring eller sporing, og vi deler ingen data med tredjeparter.</p>
+        <p>Nødvendige cookies kræver ikke samtykke efter cookiebekendtgørelsen, men du har ret til at vide, hvad de gør:</p>
+        <div class="table-wrap"><table><thead><tr><th>Navn</th><th>Formål</th><th>Levetid</th></tr></thead><tbody>
+            <tr><td><code>__Host-Tumle</code></td><td>Holder dig logget ind.</td><td>30 min. uden aktivitet</td></tr>
+            <tr><td><code>__Host-Tumle-2fa</code></td><td>Husker hvem du er, mens du indtaster koden fra din app.</td><td>5 min.</td></tr>
+            <tr><td><code>__Host-Tumle-AF</code></td><td>Beskytter formularer mod forfalskede anmodninger (CSRF).</td><td>Til browseren lukkes</td></tr>
+            <tr><td><code>__Host-Tumle-Msg</code></td><td>Viser en besked efter en handling, fx "Du er logget ud".</td><td>Til beskeden er vist</td></tr>
+            <tr><td><code>__Host-Tumle-Cookies</code></td><td>Husker at du har lukket denne cookie-meddelelse.</td><td>12 måneder</td></tr>
+        </tbody></table></div>
+        <h3>Persondata</h3>
+        <p>Vi gemmer din e-mailadresse, dit brugerniveau, en hash af din adgangskode og nøglen til din to-faktor-app. Data bruges kun til at give dig adgang til sitet og slettes, når en administrator sletter din konto. Når du vælger adgangskode, sendes de første 5 tegn af en SHA-1-hash af den til Have I Been Pwned for at tjekke for datalæk. Selve adgangskoden forlader aldrig serveren.</p>
+        <p>Du kan altid slette cookies i din browser. Så bliver du logget ud, og meddelelsen vises igen.</p>
+        <div class="actions"><button type="button" class="btn" data-go="${session && session.amr === "mfa" ? "home" : "login"}">Tilbage</button></div></div>`, true),
+
+    forbidden: () => win("Ingen adgang", `<p>Dit brugerniveau giver ikke adgang til denne side.</p>
+        <div class="actions"><button type="button" class="btn" data-go="home">Til forsiden</button></div>`),
+};
+
+/* ---------- Adgangskontrol (svarer til policies i Program.cs) ---------- */
+function guard() {
+    const u = me();
+    if (session && session.email && (!u || isLocked(u))) session = null;   // svarer til security stamp-validering
+    const n = view.name;
+    if (n === "home" || n === "admin" || n === "codes") {
+        if (!session || !session.email) return (view = { name: "login", params: {} });
+        if (session.amr !== "mfa") return (view = { name: "setup2fa", params: {} });
+        if (n === "admin" && u.role !== "Administrator") return (view = { name: "forbidden", params: {} });
+    }
+    if (n === "setup2fa") {
+        if (!session || !session.email) return (view = { name: "login", params: {} });
+        if (u.twoFactor) return (view = { name: session.amr === "mfa" ? "home" : "login", params: {} });
+        if (!u.pendingSecret) { u.pendingSecret = b32encode(rand(20)); save(); }
+    }
+    if ((n === "twofa" || n === "recovery") && !(session && session.pending)) view = { name: "login", params: {} };
+}
+
+/* ---------- Gengivelse ---------- */
+function render() {
+    guard();
+    const u = me(), full = session && session.amr === "mfa" && u;
+    $("#topbar").innerHTML = `<h1 class="logo"><button type="button" data-go="${full ? "home" : "login"}">Tumlegaarden</button></h1>
+        ${full ? `<nav class="topnav" aria-label="Hovedmenu">
+            ${u.role === "Administrator" ? `<button type="button" class="linklike" data-go="admin">Brugere</button>` : ""}
+            <span class="who">${esc(u.email)}</span>${roleBadge(u.role)}
+            <button type="button" class="btn btn-small" data-action="logout">Log ud</button></nav>` : ""}`;
+    const body = views[view.name]();
+    $("#app").innerHTML = (ui.status ? `<p class="msg msg-ok status" role="status">${esc(ui.status)}</p>` : "") + body;
+    if (ui.extra && ui.extra.qr) drawQr(ui.extra.qr);
+    $("#cookie").innerHTML = db.cookieOk ? "" : `<aside class="cookie-notice" aria-label="Cookies"><section class="window"><h2 class="window-title">Cookies</h2>
+        <div class="cookie-inner"><p>Vi bruger kun nødvendige cookies til login og sikkerhed. Ingen statistik, ingen markedsføring, ingen tredjeparter. <button type="button" class="linklike" data-go="cookies">Læs mere</button></p>
+        <button type="button" class="btn btn-primary" data-action="cookie-ok">OK</button></div></section></aside>`;
+    renderDemo();
+    const first = $("#app input:not([readonly]):not([type=checkbox])");
+    if (first && ui.errors.length === 0 && view.name !== "admin") first.focus({ preventScroll: true });
+}
+
+function drawQr(text) {
+    const el = $("#qr");
+    if (!el) return;
+    if (typeof QRCode === "undefined") { el.innerHTML = `<p class="hint">QR-koden kunne ikke indlæses. Brug nøglen nedenfor.</p>`; return; }
+    new QRCode(el, { text, width: 192, height: 192, colorDark: "#1a1e26", colorLight: "#fbfaf6", correctLevel: QRCode.CorrectLevel.M });
+}
+
+function renderDemo() {
+    const unread = db.mails.filter((m) => !m.read).length;
+    $("#demo").innerHTML = `
+        <section class="window"><h2 class="window-title">Om demoen</h2><div class="window-body">
+            <p>Dette er Tumlegaarden-sitet kørt i din browser, så I kan prøve flowet direkte. Data gemmes kun lokalt i din browser.</p>
+            <p class="hint">Start med invitationen til admin@${DOMAIN} i indbakken. Forsiden er tom med vilje. Den rigtige sikkerhed (cookies, rate limiting, datalæk-tjek) ligger i ASP.NET-projektet.</p>
+            ${confirmReset
+                ? `<p><strong>Slet alle brugere, invitationer og mails?</strong></p><div class="actions"><button type="button" class="btn btn-danger btn-small" data-action="reset-yes">Ja, nulstil</button><button type="button" class="btn btn-small" data-action="reset-no">Annullér</button></div>`
+                : `<div class="actions"><button type="button" class="btn btn-small" data-action="reset">Nulstil demo</button></div>`}
+        </div></section>
+        <section class="window"><h2 class="window-title">Indbakke${unread ? ` (${unread})` : ""}</h2><div class="window-body">
+            ${db.mails.length ? `<ul class="inbox">${db.mails.map((m) => `<li class="mail${m.read ? "" : " mail-new"}">
+                <div class="mail-head"><span>Til ${esc(m.to)}</span><span class="num">${new Date(m.at).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}</span></div>
+                <p class="mail-subject">${esc(m.subject)}</p>
+                <p class="mail-body">${esc(m.body)}</p>
+                ${m.link ? `<button type="button" class="btn btn-small btn-primary" data-action="open-mail" data-id="${m.id}">Åbn link</button>` : ""}
+            </li>`).join("")}</ul>` : `<p class="empty">Ingen mails endnu.</p>`}
+        </div></section>
+        <section class="window"><h2 class="window-title">Authenticator</h2><div class="window-body">
+            <p class="hint">Erstatter telefonen i demoen. Koderne skifter hvert 30. sekund.</p>
+            <ul class="otp" id="otp"></ul>
+        </div></section>`;
+    tickOtp();
+}
+
+async function tickOtp() {
+    const list = $("#otp");
+    if (!list) return;
+    const entries = db.users.map((u) => ({ email: u.email, secret: u.twoFactor ? u.secret : u.pendingSecret })).filter((x) => x.secret);
+    if (!entries.length) { list.innerHTML = `<li><p class="empty">Ingen konti har to-faktor endnu.</p></li>`; return; }
+    const left = 30 - Math.floor(Date.now() / 1000) % 30;
+    const codes = await Promise.all(entries.map((e) => totp(e.secret)));
+    list.innerHTML = entries.map((e, i) => `<li><div class="otp-mail">${esc(e.email)}</div>
+        <div class="otp-code">${codes[i].slice(0, 3)} ${codes[i].slice(3)}</div>
+        <div class="otp-bar" aria-label="${left} sekunder tilbage"><span style="width:${(left / 30) * 100}%"></span></div></li>`).join("");
+}
+setInterval(tickOtp, 1000);
+
+/* ---------- Handlinger ---------- */
+const forms = {
+    async login(f) {
+        const email = f.get("email").trim(), pw = f.get("password");
+        if (!email || !pw) return fail("Angiv e-mail og adgangskode.", { email });
+        if (!emailAllowed(email)) return fail(`Kun e-mailadresser på @${DOMAIN} kan logge ind.`, { email });
+        const u = userBy(email);
+        if (!u) { await hashPassword(pw); return fail(GENERIC_LOGIN, { email }); }   // samme svartid som rigtigt login
+        if (isLocked(u)) return fail(LOCKED, { email });
+        if (!(await verifyPassword(pw, u))) { failAttempt(u); return fail(isLocked(u) ? LOCKED : GENERIC_LOGIN, { email }); }
+        u.failed = 0; save();
+        if (u.twoFactor) { session = { pending: u.email }; return go("twofa"); }
+        session = { email: u.email, amr: "pwd" };
+        go("setup2fa");
+    },
+    async twofa(f) {
+        const u = userBy(session.pending);
+        if (!u || isLocked(u)) { session = null; return go("login", {}, null); }
+        if (!(await totpValid(u.secret, f.get("code")))) { failAttempt(u); return fail(isLocked(u) ? LOCKED : "Forkert kode."); }
+        u.failed = 0; save();
+        session = { email: u.email, amr: "mfa" };
+        go("home");
+    },
+    async recovery(f) {
+        const u = userBy(session.pending);
+        const h = await sha256(String(f.get("code")).replace(/\s/g, "").toLowerCase());
+        const idx = u ? u.recovery.indexOf(h) : -1;
+        if (idx < 0) { if (u) failAttempt(u); return fail(u && isLocked(u) ? LOCKED : "Ugyldig gendannelseskode."); }
+        u.recovery.splice(idx, 1); u.failed = 0; save();
+        session = { email: u.email, amr: "mfa" };
+        go("home", {}, `Gendannelseskode brugt. Du har ${u.recovery.length} tilbage.`);
+    },
+    async setup2fa(f) {
+        const u = me();
+        if (!(await totpValid(u.pendingSecret, f.get("code")))) return fail("Koden passer ikke. Tjek at telefonens ur er korrekt, og prøv igen.");
+        const codes = Array.from({ length: 10 }, () => { const s = hex(rand(5)); return s.slice(0, 5) + "-" + s.slice(5); });
+        u.secret = u.pendingSecret; u.pendingSecret = null; u.twoFactor = true;
+        u.recovery = await Promise.all(codes.map((c) => sha256(c)));
+        save();
+        session = { email: u.email, amr: "mfa" };
+        go("codes", { codes });
+    },
+    async accept(f) {
+        const inv = await findInvite(view.params.token);
+        if (!inv) { ui.extra = null; return fail([]); }
+        const pw = f.get("password"), confirm = f.get("confirm");
+        const errors = pw !== confirm ? ["Adgangskoderne er ikke ens."] : passwordErrors(pw, inv.email);
+        if (userBy(inv.email)) errors.push("Der findes allerede en konto med denne adresse.");
+        if (errors.length) { fail(errors); ui.extra = { invite: inv }; return render(); }
+        const { salt, hash } = await hashPassword(pw);
+        db.users.push({ email: inv.email, role: inv.role, salt, hash, twoFactor: false, secret: null, pendingSecret: null, recovery: [], failed: 0, lockoutEnd: null });
+        inv.used = Date.now();
+        save();
+        session = { email: inv.email, amr: "pwd" };
+        go("setup2fa");
+    },
+    async forgot(f) {
+        const email = f.get("email").trim();
+        if (!email) return fail("Angiv din e-mail.", { email });
+        const u = emailAllowed(email) && userBy(email);
+        if (u) {
+            const token = b64url(rand(32));
+            u.resetHash = await sha256(token); u.resetExpires = Date.now() + 2 * 3600e3; save();
+            sendMail(u.email, "Tumlegaarden: Nulstil adgangskode", `Åbn dette link for at vælge en ny adgangskode (gyldigt i 2 timer):\nhttps://${DOMAIN}/Account/ResetPassword?code=${token.slice(0, 10)}…\n\nHar du ikke bedt om det, kan du se bort fra denne mail.`, { view: "reset", token });
+        }
+        go("forgot", { sent: true });   // samme svar uanset om kontoen findes
+    },
+    async reset(f) {
+        const email = f.get("email").trim(), pw = f.get("password"), confirm = f.get("confirm");
+        const u = userBy(email);
+        const valid = u && u.resetHash && u.resetExpires > Date.now() && u.resetHash === (await sha256(view.params.token || ""));
+        if (!valid) return fail("Linket er ugyldigt eller udløbet.", { email });
+        const errors = pw !== confirm ? ["Adgangskoderne er ikke ens."] : passwordErrors(pw, u.email);
+        if (errors.length) return fail(errors, { email });
+        Object.assign(u, await hashPassword(pw), { resetHash: null, resetExpires: null, failed: 0 });
+        save();
+        session = null;   // nulstilling logger alle sessioner ud
+        go("login", {}, "Adgangskoden er ændret. Log ind igen.");
+    },
+    async invite(f) {
+        const email = f.get("email").trim(), role = f.get("role");
+        const values = { email, role };
+        if (!email) return fail("Angiv en e-mail.", values);
+        if (!emailAllowed(email)) return fail(`Kun adresser på @${DOMAIN} kan inviteres.`, values);
+        if (!ROLES.includes(role)) return fail("Ukendt niveau.", values);
+        if (userBy(email)) return fail("Der findes allerede en bruger med denne adresse.", values);
+        const token = await createInvite(email, role, me().email);
+        sendMail(norm(email), "Tumlegaarden: Du er inviteret", inviteBody(role, token), { view: "accept", token });
+        go("admin");
+        ui.extra = { newInvite: { email: norm(email), link: `https://${DOMAIN}/Account/AcceptInvitation?token=${token}` } };
+        render();
+    },
+    async role(f, form) {
+        const u = otherUser(form.dataset.id), role = f.get("role");
+        if (!u || !ROLES.includes(role)) return;
+        u.role = role; save();
+        go("admin", {}, `${u.email} er nu ${role}.`);
+    },
+    async delete(f, form) {
+        const u = otherUser(form.dataset.id);
+        if (!u) return;
+        if (!f.get("confirm")) return go("admin", {}, "Sæt flueben i Bekræft for at slette.");
+        db.users = db.users.filter((x) => x !== u); save();
+        go("admin", {}, `${u.email} er slettet.`);
+    },
+};
+
+/* En administrator kan ikke ændre sig selv – så der altid er mindst én administrator. */
+function otherUser(email) {
+    const self = me();
+    if (!self || self.role !== "Administrator" || email === self.email) return null;
+    return userBy(email);
+}
+
+const actions = {
+    logout() { session = null; go("login", {}, "Du er logget ud."); },
+    "cookie-ok"() { db.cookieOk = true; save(); render(); },
+    revoke(id) { const i = db.invites.find((x) => x.id === Number(id)); if (i && me()?.role === "Administrator") { i.revoked = Date.now(); save(); } go("admin", {}, "Invitationen er trukket tilbage."); },
+    lock(id) { const u = otherUser(id); if (u) { u.lockoutEnd = LOCK_MAX; save(); go("admin", {}, `${u.email} er låst.`); } },
+    unlock(id) { const u = otherUser(id); if (u) { u.lockoutEnd = null; u.failed = 0; save(); go("admin", {}, `${u.email} er låst op.`); } },
+    reset2fa(id) { const u = otherUser(id); if (u) { Object.assign(u, { twoFactor: false, secret: null, pendingSecret: null, recovery: [] }); save(); go("admin", {}, `To-faktor er nulstillet for ${u.email}. Brugeren skal sætte den op igen ved næste login.`); } },
+    async "open-mail"(id) {
+        const m = db.mails.find((x) => x.id === Number(id));
+        if (!m) return;
+        m.read = true; save();
+        if (m.link.view === "accept") {
+            view = { name: "accept", params: { token: m.link.token } };
+            ui = { errors: [], status: null, values: {}, extra: { invite: await findInvite(m.link.token) } };
+            render();
+            window.scrollTo({ top: 0 });
+        } else {
+            go(m.link.view, { token: m.link.token });
+        }
+    },
+    reset() { confirmReset = true; renderDemo(); },
+    "reset-no"() { confirmReset = false; renderDemo(); },
+    async "reset-yes"() {
+        confirmReset = false;
+        db = blank(); session = null;
+        try { localStorage.removeItem(KEY); } catch { }
+        await seed();
+        go("login", {}, "Demoen er nulstillet. Der ligger en ny administrator-invitation i indbakken.");
+    },
+};
+
+document.addEventListener("click", (e) => {
+    const g = e.target.closest("[data-go]");
+    if (g) { e.preventDefault(); return go(g.dataset.go); }
+    const a = e.target.closest("[data-action]");
+    if (a && actions[a.dataset.action]) { e.preventDefault(); actions[a.dataset.action](a.dataset.id); }
+});
+
+document.addEventListener("submit", async (e) => {
+    const form = e.target.closest("form[data-form]");
+    if (!form) return;
+    e.preventDefault();
+    const btn = form.querySelector("button[type=submit]");
+    if (btn) btn.disabled = true;
+    try { await forms[form.dataset.form](new FormData(form), form); }
+    catch (err) { console.error(err); fail("Noget gik galt. Prøv igen."); }
+    finally { if (btn && btn.isConnected) btn.disabled = false; }
+});
+
+(async () => { await seed(); render(); })();
+</script>
