@@ -3,8 +3,10 @@
 @{
     ViewData["Title"] = "Fejl";
 }
-<section class="panel">
-    <h2>@(Model.Code switch { 404 => "Siden findes ikke", 429 => "For mange forsøg", 403 => "Ingen adgang", _ => "Noget gik galt" })</h2>
+<section class="window">
+    <h2 class="window-title">@(Model.Code switch { 404 => "Siden findes ikke", 429 => "For mange forsøg", 403 => "Ingen adgang", _ => "Noget gik galt" })</h2>
+    <div class="window-body">
     <p>@(Model.Code == 429 ? "Vent et minut og prøv igen." : "Prøv igen, eller gå til forsiden.")</p>
     <p><a class="btn" href="/">Til forsiden</a></p>
+    </div>
 </section>

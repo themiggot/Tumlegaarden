@@ -1,0 +1,27 @@
+@page
+@model CookiesModel
+@{
+    ViewData["Title"] = "Cookies";
+}
+<section class="window window-wide">
+    <h2 class="window-title">Cookies og privatliv</h2>
+    <div class="window-body prose">
+        <p>Tumlegaarden bruger kun cookies, der er <strong>nødvendige</strong> for at du kan logge sikkert ind. Vi bruger ingen cookies til statistik, markedsføring eller sporing, og vi deler ingen data med tredjeparter.</p>
+        <p>Nødvendige cookies kræver ikke samtykke efter cookiebekendtgørelsen, men du har ret til at vide, hvad de gør:</p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Navn</th><th>Formål</th><th>Levetid</th></tr></thead>
+                <tbody>
+                    <tr><td><code>__Host-Tumle</code></td><td>Holder dig logget ind.</td><td>30 min. uden aktivitet</td></tr>
+                    <tr><td><code>__Host-Tumle-2fa</code></td><td>Husker hvem du er, mens du indtaster koden fra din app.</td><td>5 min.</td></tr>
+                    <tr><td><code>__Host-Tumle-AF</code></td><td>Beskytter formularer mod forfalskede anmodninger (CSRF).</td><td>Til browseren lukkes</td></tr>
+                    <tr><td><code>__Host-Tumle-Msg</code></td><td>Viser en besked efter en handling, fx "Du er logget ud".</td><td>Til beskeden er vist</td></tr>
+                    <tr><td><code>__Host-Tumle-Cookies</code></td><td>Husker at du har lukket denne cookie-meddelelse.</td><td>12 måneder</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <h3>Persondata</h3>
+        <p>Vi gemmer din e-mailadresse, dit brugerniveau, en hash af din adgangskode og nøglen til din to-faktor-app. Data bruges kun til at give dig adgang til sitet og slettes, når en administrator sletter din konto. Når du vælger adgangskode, sendes de første 5 tegn af en SHA-1-hash af den til Have I Been Pwned for at tjekke for datalæk. Selve adgangskoden forlader aldrig serveren.</p>
+        <p>Du kan altid slette cookies i din browser. Så bliver du logget ud, og meddelelsen vises igen.</p>
+    </div>
+</section>

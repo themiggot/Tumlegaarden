@@ -1,0 +1,120 @@
+@page
+@model UsersModel
+@using Tumlegaarden.Web.Security
+@{
+    ViewData["Title"] = "Brugere";
+}
+<section class="window window-wide">
+    <h2 class="window-title">Inviter bruger</h2>
+    <div class="window-body">
+        @if (Model.NewInviteLink is not null)
+        {
+            <div class="msg msg-ok" role="status">
+                <p>Invitationen er sendt til @Model.NewInviteEmail. Linket vises kun nu, hvis du vil give det videre på anden vis:</p>
+                <code class="key">@Model.NewInviteLink</code>
+            </div>
+        }
+        <form method="post" asp-page-handler="Invite" class="invite-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
+            <div class="field">
+                <label asp-for="Invite.Email">E-mail</label>
+                <input asp-for="Invite.Email" placeholder="@($"navn@{Model.Domain}")" />
+                <span asp-validation-for="Invite.Email" class="field-err"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Invite.Role">Niveau</label>
+                <select asp-for="Invite.Role" asp-items="Model.RoleItems"></select>
+            </div>
+            <div class="field field-action"><button type="submit" class="btn btn-primary">Send invitation</button></div>
+        </form>
+
+        @if (Model.Pending.Count > 0)
+        {
+            <h3>Afventende invitationer</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>E-mail</th><th>Niveau</th><th>Udløber</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var i in Model.Pending)
+                        {
+                            <tr>
+                                <td>@i.Email</td>
+                                <td><span class="role role-@UsersModel.Css(i.Role)">@i.Role</span></td>
+                                <td class="num">@i.ExpiresUtc.ToLocalTime().ToString("dd-MM-yyyy HH:mm")</td>
+                                <td>
+                                    <form method="post" asp-page-handler="Revoke" asp-route-id="@i.Id">
+                                        <button type="submit" class="btn btn-small">Træk tilbage</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="window window-wide">
+    <h2 class="window-title">Brugere</h2>
+    <div class="window-body">
+        <p class="hint">Niveauer fra flest til færrest rettigheder: Administrator, Diktator, Børler. Kun administratorer kan invitere og ændre brugere.</p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>E-mail</th><th>Niveau</th><th>Status</th><th>Handlinger</th></tr></thead>
+                <tbody>
+                    @foreach (var u in Model.Users)
+                    {
+                        <tr>
+                            <td>@u.Email @if (u.IsSelf) { <span class="hint">(dig)</span> }</td>
+                            <td>
+                                @if (u.IsSelf)
+                                {
+                                    <span class="role role-@UsersModel.Css(u.Role)">@u.Role</span>
+                                }
+                                else
+                                {
+                                    <form method="post" asp-page-handler="Role" asp-route-id="@u.Id" class="inline">
+                                        <label class="sr-only" for="role-@u.Id">Niveau for @u.Email</label>
+                                        <select id="role-@u.Id" name="role">
+                                            @foreach (var r in Roles.All)
+                                            {
+                                                <option value="@r" selected="@(r == u.Role)">@r</option>
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-small">Gem</button>
+                                    </form>
+                                }
+                            </td>
+                            <td>
+                                @if (u.Locked) { <span class="tag tag-err">Låst</span> }
+                                else if (!u.TwoFactor) { <span class="tag tag-warn">Mangler 2FA</span> }
+                                else { <span class="tag tag-ok">Aktiv</span> }
+                            </td>
+                            <td>
+                                @if (!u.IsSelf)
+                                {
+                                    <div class="row-actions">
+                                        <form method="post" asp-page-handler="@(u.Locked ? "Unlock" : "Lock")" asp-route-id="@u.Id">
+                                            <button type="submit" class="btn btn-small">@(u.Locked ? "Lås op" : "Lås")</button>
+                                        </form>
+                                        @if (u.TwoFactor)
+                                        {
+                                            <form method="post" asp-page-handler="Reset2fa" asp-route-id="@u.Id">
+                                                <button type="submit" class="btn btn-small">Nulstil 2FA</button>
+                                            </form>
+                                        }
+                                        <form method="post" asp-page-handler="Delete" asp-route-id="@u.Id" class="inline">
+                                            <label class="confirm"><input type="checkbox" name="confirm" value="true" required /> Bekræft</label>
+                                            <button type="submit" class="btn btn-small btn-danger">Slet</button>
+                                        </form>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

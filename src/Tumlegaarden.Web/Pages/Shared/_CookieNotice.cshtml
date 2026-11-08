@@ -1,0 +1,13 @@
+@using Tumlegaarden.Web.Security
+@if (!Context.Request.Cookies.ContainsKey(CookieNotice.CookieName))
+{
+    <aside class="cookie-notice" aria-label="Cookies">
+        <div class="cookie-inner">
+            <p><strong>Cookies.</strong> Vi bruger kun nødvendige cookies til login og sikkerhed. Ingen statistik, ingen markedsføring, ingen tredjeparter. <a asp-page="/Cookies">Læs mere</a></p>
+            <form method="post" asp-page="/Cookies" asp-page-handler="Accept">
+                <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                <button type="submit" class="btn btn-primary">OK</button>
+            </form>
+        </div>
+    </aside>
+}

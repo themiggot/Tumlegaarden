@@ -1,5 +1,7 @@
+@using Tumlegaarden.Web.Security
 @{
     var signedIn = User.Identity?.IsAuthenticated == true && User.HasClaim("amr", "mfa");
+    var role = Roles.All.FirstOrDefault(User.IsInRole);
     var status = TempData["Status"] as string;
 }
 <!DOCTYPE html>
@@ -16,21 +18,32 @@
         <h1 class="logo"><a asp-page="/Index">Tumlegaarden</a></h1>
         @if (signedIn)
         {
-            <form method="post" asp-page="/Account/Logout" class="topbar-user">
+            <nav class="topnav" aria-label="Hovedmenu">
+                @if (role == Roles.Administrator)
+                {
+                    <a asp-page="/Admin/Users">Brugere</a>
+                }
                 <span class="who">@User.Identity!.Name</span>
-                <button type="submit" class="btn btn-small">Log ud</button>
-            </form>
+                @if (role is not null)
+                {
+                    <span class="role role-@role.ToLowerInvariant().Replace("ø", "o")">@role</span>
+                }
+                <form method="post" asp-page="/Account/Logout">
+                    <button type="submit" class="btn btn-small">Log ud</button>
+                </form>
+            </nav>
         }
     </header>
 
     <main class="stage">
         @if (!string.IsNullOrEmpty(status))
         {
-            <p class="msg msg-ok" role="status">@status</p>
+            <p class="msg msg-ok status" role="status">@status</p>
         }
         @RenderBody()
     </main>
 
-    <div class="ground" aria-hidden="true"></div>
+    <footer class="footer"><a asp-page="/Cookies">Cookies og privatliv</a></footer>
+    <partial name="_CookieNotice" />
 </body>
 </html>

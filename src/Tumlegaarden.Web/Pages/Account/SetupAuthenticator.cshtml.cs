@@ -112,7 +112,7 @@ public class SetupAuthenticatorModel(
 
         using var generator = new QRCodeGenerator();
         using var data = generator.CreateQrCode(uri, QRCodeGenerator.ECCLevel.Q);
-        var png = new PngByteQRCode(data).GetGraphic(8, [24, 20, 37], [255, 255, 255], drawQuietZones: true);
+        var png = new PngByteQRCode(data).GetGraphic(6, [26, 30, 38], [251, 250, 246], drawQuietZones: true);
         QrDataUri = "data:image/png;base64," + Convert.ToBase64String(png);
     }
 

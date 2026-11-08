@@ -3,14 +3,16 @@
 @{
     ViewData["Title"] = "Gendannelseskode";
 }
-<section class="panel">
-    <h2>Gendannelse</h2>
+<section class="window">
+    <h2 class="window-title">Gendannelse</h2>
+    <div class="window-body">
     <p>Har du mistet adgang til din app, kan du bruge én af dine gendannelseskoder. Hver kode virker kun én gang.</p>
     <form method="post" asp-route-returnUrl="@Model.ReturnUrl" novalidate>
         <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
         <label asp-for="Input.Code">Gendannelseskode</label>
         <input asp-for="Input.Code" autocomplete="off" autofocus />
         <span asp-validation-for="Input.Code" class="field-err"></span>
-        <button type="submit" class="btn">OK</button>
+        <div class="actions"><button type="submit" class="btn btn-primary">OK</button></div>
     </form>
+    </div>
 </section>

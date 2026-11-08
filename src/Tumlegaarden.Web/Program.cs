@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,6 +34,8 @@ builder.Services.AddDataProtection()
 builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection("Security"));
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 builder.Services.AddTransient<IAppEmailSender, SmtpEmailSender>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<InvitationService>();
 builder.Services.AddHttpClient(PwnedPasswordValidator.HttpClientName, c =>
 {
     c.BaseAddress = new Uri("https://api.pwnedpasswords.com/");
@@ -70,7 +73,8 @@ builder.Services.Configure<PasswordHasherOptions>(o => o.IterationCount = 210_00
 builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromHours(2));
 builder.Services.Configure<SecurityStampValidatorOptions>(o =>
 {
-    o.ValidationInterval = TimeSpan.FromMinutes(5);
+    // Rolleskift, låsning og sletning slår igennem på aktive sessioner inden for et minut.
+    o.ValidationInterval = TimeSpan.FromMinutes(1);
     // Bevar "amr=mfa" når cookien fornyes, ellers ville brugeren miste 2FA-status.
     o.OnRefreshingPrincipal = ctx =>
     {
@@ -93,8 +97,14 @@ builder.Services.ConfigureApplicationCookie(o =>
     o.SlidingExpiration = true;
     o.LoginPath = "/Account/Login";
     o.LogoutPath = "/Account/Logout";
-    // Logget ind med adgangskode men uden 2FA → send til opsætning af 2FA.
     o.AccessDeniedPath = "/Account/SetupAuthenticator";
+    o.Events.OnRedirectToAccessDenied = ctx =>
+    {
+        // Fuldt logget ind men mangler rettighed → 403. Kun adgangskode → opsæt 2FA.
+        if (ctx.HttpContext.User.HasClaim("amr", "mfa")) ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+        else ctx.Response.Redirect(ctx.RedirectUri);
+        return Task.CompletedTask;
+    };
 });
 builder.Services.Configure<CookieAuthenticationOptions>(IdentityConstants.TwoFactorUserIdScheme, o =>
 {
@@ -110,13 +120,13 @@ builder.Services.AddAntiforgery(o =>
     o.Cookie.SameSite = SameSiteMode.Strict;
 });
 
-// Alt kræver login MED to-faktor, medmindre en side udtrykkeligt siger andet.
+// Alt kræver login MED to-faktor og en rolle, medmindre en side udtrykkeligt siger andet.
 builder.Services.AddAuthorizationBuilder()
-    .SetFallbackPolicy(new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .RequireClaim("amr", "mfa")
-        .Build())
-    .AddPolicy("PasswordOnly", p => p.RequireAuthenticatedUser());
+    .SetFallbackPolicy(Policies.RoleAtLeast(Roles.Borler))
+    .AddPolicy(Policies.BorlerOrHigher, Policies.RoleAtLeast(Roles.Borler))
+    .AddPolicy(Policies.DiktatorOrHigher, Policies.RoleAtLeast(Roles.Diktator))
+    .AddPolicy(Policies.Administrator, Policies.RoleAtLeast(Roles.Administrator))
+    .AddPolicy(Policies.PasswordOnly, p => p.RequireAuthenticatedUser());
 
 // Begræns POST-forsøg pr. IP på konto-siderne (brute force / password spraying / mailspam).
 builder.Services.AddRateLimiter(o =>
@@ -131,17 +141,23 @@ builder.Services.AddRateLimiter(o =>
 });
 
 builder.Services.AddRazorPages(o =>
+{
     o.Conventions.AddFolderApplicationModelConvention("/Account",
-        m => m.EndpointMetadata.Add(new EnableRateLimitingAttribute("auth"))));
+        m => m.EndpointMetadata.Add(new EnableRateLimitingAttribute("auth")));
+    o.Conventions.AuthorizeFolder("/Admin", Policies.Administrator);
+});
+builder.Services.Configure<CookieTempDataProviderOptions>(o =>
+{
+    o.Cookie.Name = "__Host-Tumle-Msg";
+    o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    o.Cookie.SameSite = SameSiteMode.Strict;
+});
 
 builder.Services.AddHsts(o => o.MaxAge = TimeSpan.FromDays(365));
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
-}
+await StartupTasks.InitializeAsync(app.Services);
 
 if (!app.Environment.IsDevelopment())
 {
