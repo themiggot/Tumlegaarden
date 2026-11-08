@@ -1,0 +1,50 @@
+@page "{id:int?}"
+@model EditModel
+@{
+    ViewData["Title"] = Model.Id is null ? "Ny begivenhed" : "Rediger begivenhed";
+}
+<section class="window">
+    <h2 class="window-title">@ViewData["Title"]</h2>
+    <div class="window-body">
+        <form method="post" asp-route-id="@Model.Id" novalidate>
+            <div asp-validation-summary="ModelOnly" class="msg msg-err"></div>
+
+            <label asp-for="Input.Title">Navn</label>
+            <input asp-for="Input.Title" maxlength="100" autofocus />
+            <span asp-validation-for="Input.Title" class="field-err"></span>
+
+            <div class="field-row">
+                <div class="field">
+                    <label asp-for="Input.Date">Dato</label>
+                    <input asp-for="Input.Date" type="date" min="2000-01-01" max="2100-12-31" />
+                    <span asp-validation-for="Input.Date" class="field-err"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="Input.Time">Tidspunkt</label>
+                    <input asp-for="Input.Time" type="time" />
+                    <span class="hint">Tom = hele dagen</span>
+                </div>
+            </div>
+
+            <label asp-for="Input.Body">Tekst</label>
+            <textarea asp-for="Input.Body" rows="8" maxlength="4000"></textarea>
+            <span asp-validation-for="Input.Body" class="field-err"></span>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Gem</button>
+                <a class="btn" asp-page="/Index">Annullér</a>
+            </div>
+        </form>
+
+        @if (Model.Id is not null)
+        {
+            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Id" class="delete-form">
+                <h3>Slet begivenhed</h3>
+                <div class="inline">
+                    <label class="confirm"><input type="checkbox" name="confirm" value="true" /> Bekræft</label>
+                    <button type="submit" class="btn btn-small btn-danger">Slet</button>
+                </div>
+            </form>
+        }
+    </div>
+</section>

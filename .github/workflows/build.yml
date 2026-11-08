@@ -37,6 +37,12 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      - name: Opdater listen over danske IP-adresser
+        run: ./tools/update-dk-ip-ranges.sh || echo "::warning::Kunne ikke hente nye IP-data – bruger listen fra repoet."
+
+      - name: Test
+        run: dotnet test tests/Tumlegaarden.Tests --configuration Release
+
       - name: Byg og udgiv
         run: dotnet publish src/Tumlegaarden.Web -c Release -r "$RUNTIME" --self-contained -o publish
 
@@ -46,6 +52,7 @@ jobs:
           test -f publish/Tumlegaarden.Web.exe
           grep -q enableShadowCopy publish/web.config
           grep -q 'stdoutLogEnabled="true"' publish/web.config
+          test "$(grep -vc '^#' publish/GeoData/dk-ip-ranges.csv)" -gt 1000
           test ! -f publish/appsettings.Production.json
           test ! -f publish/appsettings.Development.json
 

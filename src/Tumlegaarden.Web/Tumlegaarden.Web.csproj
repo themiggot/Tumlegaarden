@@ -4,10 +4,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Simply.com: selvstændig udgivelse, så sitet ikke afhænger af hvilken .NET-version webhotellet har installeret. -->
-    <RuntimeIdentifier Condition="'$(Configuration)' == 'Release'">win-x86</RuntimeIdentifier>
-    <SelfContained Condition="'$(Configuration)' == 'Release'">true</SelfContained>
+    <!-- Simply.com: selvstændig 32-bit udgivelse (app-poolen kører 32-bit), så sitet ikke afhænger af serverens .NET-version.
+         Gælder kun ved "dotnet publish", så tests og lokal kørsel bruger maskinens egen runtime. -->
+    <RuntimeIdentifier Condition="'$(_IsPublishing)' == 'true' and '$(RuntimeIdentifier)' == ''">win-x86</RuntimeIdentifier>
+    <SelfContained Condition="'$(_IsPublishing)' == 'true'">true</SelfContained>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="GeoData\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Update="appsettings.Development.json;appsettings.Production.example.json" CopyToPublishDirectory="Never" />

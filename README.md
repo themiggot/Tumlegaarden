@@ -3,13 +3,20 @@
 Tech demo: ASP.NET Core 10 (Razor Pages) med et 16-bit skrivebordstema og et sikkert login, der kun er åbent for `@tumlegaarden.dk`.
 Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-headeren forbyder scripts helt.
 
+## Funktioner
+
+- **Kalender** som forside efter login. Begivenheder har dato, tidspunkt (eller hele dagen), navn og brødtekst, ligger i tabellen `Events` og foldes ud ved klik (HTML `<details>`, ingen JavaScript).
+- **Disclaimer** ved første besøg: privat side uden kommercielle interesser, kun for inviterede. Skal bekræftes med OK. Indeholder også cookie-informationen.
+- **Kun adgang fra Danmark** (IP-filter på alle sider). Se [DEPLOY.md](DEPLOY.md#8a-kun-adgang-fra-danmark).
+- **Login** kun for `@tumlegaarden.dk`, kun via invitation, obligatorisk to-faktor.
+
 ## Brugerniveauer
 
 | Niveau | Rettigheder |
 |---|---|
-| **Administrator** | Alt. Inviterer brugere, ændrer niveau, låser, nulstiller to-faktor og sletter. |
-| **Diktator** | Mellemniveau. Policy `DiktatorOrHigher` er klar til kommende indhold. |
-| **Børler** | Laveste niveau. Kan logge ind og se forsiden. |
+| **Administrator** | Alt. Inviterer brugere, ændrer niveau, låser, nulstiller to-faktor og sletter. Kan rette og slette alle begivenheder. |
+| **Diktator** | Kan oprette begivenheder og rette/slette sine egne. |
+| **Børler** | Kan se kalenderen og læse begivenheder. |
 
 Man kan **ikke** oprette sig selv. En konto oprettes kun via et engangs-invitationslink, som en administrator sender fra siden *Brugere*.
 Linket udløber efter 72 timer, kan kun bruges én gang, og kun en SHA-256-hash af det gemmes i databasen.
@@ -49,6 +56,14 @@ kan der tilføjes rigtig SSO (OpenID Connect) med ganske få linjer i `Program.c
 `demo/tumlegaarden-demo.html` er en version af sitet, der kører helt i browseren (publiceret som artefakt i Claude), så flowet kan afprøves uden server.
 Den har samme regler, roller og tema, plus en indbakke og en authenticator, så man ikke behøver mailserver eller telefon.
 Den er kun til at teste. Den rigtige sikkerhed ligger i ASP.NET-projektet.
+
+## Tests
+
+```bash
+dotnet test tests/Tumlegaarden.Tests
+```
+
+Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data) og domænekontrollen af e-mails. Kører også ved hvert byg på GitHub.
 
 ## Kør lokalt
 

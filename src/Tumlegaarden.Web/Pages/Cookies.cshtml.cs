@@ -13,15 +13,15 @@ public class CookiesModel : PageModel
 
     public IActionResult OnPostAccept(string? returnUrl)
     {
-        Response.Cookies.Append(CookieNotice.CookieName, "1", new CookieOptions
-        {
-            Path = "/",
-            Secure = true,
-            HttpOnly = true,
-            SameSite = SameSiteMode.Lax,
-            IsEssential = true,
-            MaxAge = TimeSpan.FromDays(365)
-        });
+        Response.Cookies.Append(CookieNotice.CookieName, "1", CookieNotice.Options());
+        return LocalRedirect(Url.SafeReturnUrl(returnUrl));
+    }
+
+    /// <summary>Disclaimeren indeholder også cookie-informationen, så begge huskes.</summary>
+    public IActionResult OnPostDisclaimer(string? returnUrl)
+    {
+        Response.Cookies.Append(CookieNotice.DisclaimerCookieName, "1", CookieNotice.Options());
+        Response.Cookies.Append(CookieNotice.CookieName, "1", CookieNotice.Options());
         return LocalRedirect(Url.SafeReturnUrl(returnUrl));
     }
 }

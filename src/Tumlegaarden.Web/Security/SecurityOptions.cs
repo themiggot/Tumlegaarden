@@ -10,4 +10,10 @@ public sealed class SecurityOptions
 
     /// <summary>Maks. antal POST-forsøg pr. minut pr. IP på konto-siderne.</summary>
     public int AuthPostsPerMinute { get; set; } = 30;
+
+    /// <summary>Kun adgang fra danske IP-adresser.</summary>
+    public bool DenmarkOnly { get; set; } = true;
+
+    /// <summary>Ekstra tilladte adresser eller net (fx "203.0.113.7" eller "198.51.100.0/24") uanset land.</summary>
+    public string[] AllowedIpRanges { get; set; } = [];
 }

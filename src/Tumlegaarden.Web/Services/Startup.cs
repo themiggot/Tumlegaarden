@@ -17,7 +17,9 @@ public static class StartupTasks
         var sp = scope.ServiceProvider;
         var log = sp.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
 
-        await sp.GetRequiredService<AppDbContext>().Database.EnsureCreatedAsync();
+        var db = sp.GetRequiredService<AppDbContext>();
+        await db.Database.EnsureCreatedAsync();
+        await SchemaUpdater.CreateMissingTablesAsync(db, log);
 
         var roleManager = sp.GetRequiredService<RoleManager<IdentityRole>>();
         foreach (var role in Roles.All)

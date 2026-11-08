@@ -43,6 +43,8 @@ builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp")
 builder.Services.AddTransient<IAppEmailSender, SmtpEmailSender>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<InvitationService>();
+var dkRangesPath = Path.Combine(builder.Environment.ContentRootPath, "GeoData", "dk-ip-ranges.csv");
+builder.Services.AddSingleton(File.Exists(dkRangesPath) ? CountryIpFilter.Load(dkRangesPath) : CountryIpFilter.Empty);
 builder.Services.AddHttpClient(PwnedPasswordValidator.HttpClientName, c =>
 {
     c.BaseAddress = new Uri("https://api.pwnedpasswords.com/");
@@ -165,6 +167,14 @@ builder.Services.AddHsts(o => o.MaxAge = TimeSpan.FromDays(365));
 var app = builder.Build();
 app.Logger.LogInformation("Datamappe: {DataDirectory}", appData);
 app.Logger.LogInformation("SMTP: {Smtp}", app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<SmtpOptions>>().Value);
+var dkFilter = app.Services.GetRequiredService<CountryIpFilter>();
+var securityOptions = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<SecurityOptions>>().Value;
+if (!securityOptions.DenmarkOnly)
+    app.Logger.LogWarning("Landefilter er slået FRA (Security:DenmarkOnly = false). Alle lande har adgang.");
+else if (dkFilter.RangeCount == 0)
+    app.Logger.LogError("Listen over danske IP-adresser mangler ({Path}). ALLE forespørgsler udefra afvises.", dkRangesPath);
+else
+    app.Logger.LogInformation("Landefilter: kun Danmark ({Count} adresseintervaller).", dkFilter.RangeCount);
 if (app.Environment.IsProduction() && DataDirectory.IsInside(appData, app.Environment.ContentRootPath))
     app.Logger.LogWarning("Datamappen ligger inde i web-mappen og kan blive slettet ved næste Git-import. Opret mappen ../{Folder}.", DataDirectory.DefaultFolderName);
 
@@ -203,6 +213,9 @@ app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = c => c.Context.Response.Headers.CacheControl = "public, max-age=86400"
 });
+
+// Kun danske IP-adresser. Efter statiske filer, så afvisningssiden kan hente sit stylesheet.
+app.UseMiddleware<DenmarkOnlyMiddleware>();
 
 app.UseRouting();
 app.UseRateLimiter();

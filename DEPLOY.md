@@ -133,7 +133,9 @@ Ser du noget andet end login-siden, så gå til afsnit 9.
 ## 7. Kontroller at alt er i orden
 
 - [ ] `http://tumlegaarden.dk` sender videre til `https://`.
-- [ ] Login-siden vises, og cookie-meddelelsen forsvinder efter **OK**.
+- [ ] Ved første besøg vises pop-uppen **Privat side**, og den forsvinder efter **OK, forstået**.
+- [ ] Efter login vises kalenderen, og en ny begivenhed kan oprettes og foldes ud.
+- [ ] Siden kan **ikke** åbnes via en udenlandsk VPN (du ser "Ingen adgang"). Tjek også loggen: `Landefilter: kun Danmark (… adresseintervaller)`.
 - [ ] Mappen `/tumlegaarden-data/keys` findes.
 - [ ] Administrator-invitationen kom frem, og to-faktor virker.
 - [ ] En invitation til en kollega kommer frem.
@@ -150,12 +152,31 @@ Ser du noget andet end login-siden, så gå til afsnit 9.
 3. Kør **Importer fra Git** igen som i trin 5.
 4. Sitet genstarter selv med den nye version ved næste besøg. Tjek `version.txt` i File Manager.
 
+**Databasen opgraderes selv med nye tabeller.** Kommer der en ny tabel i en ny version (som `Events` til kalenderen), oprettes den automatisk ved opstart, og loggen skriver `Oprettede manglende tabel …`. Nye *kolonner* i eksisterende tabeller oprettes ikke automatisk. Det vil stå i udgivelsesnoterne, hvis det bliver nødvendigt.
+
 **Hvis importen fejler med låste filer:** server-softwaren understøtter ikke shadow copy. Gør så sådan:
 1. Upload `app_offline.htm` fra repoets mappe `deploy/` (på `main`) til `/public_html`. Appen stopper og viser en "opdaterer"-side.
 2. Kør **Importer fra Git**.
 3. Slet `app_offline.htm`, hvis den stadig ligger der.
 
 Rør aldrig `/tumlegaarden-data`. Slettes `keys`, bliver alle logget ud. Slettes `appsettings.Production.json`, kan sitet ikke nå databasen.
+
+---
+
+## 8a. Kun adgang fra Danmark
+
+Sitet kan kun bruges fra danske IP-adresser. Det gælder alle sider, også for brugere der allerede er logget ind. Andre får siden **Ingen adgang** (HTTP 403).
+
+- **Hvor listen kommer fra:** `GeoData/dk-ip-ranges.csv` i pakken. Den bygger på de regionale internetregistres data (NRO, CC BY 4.0) via ip-location-db og hentes på ny ved hvert byg på GitHub.
+- **Hvad der ikke virker:** VPN med udenlandsk server, iCloud Privat Relay og mobil roaming i udlandet (trafikken går så ofte gennem en udenlandsk adresse).
+- **Undtagelser:** Skal en bestemt udenlandsk adresse have adgang, så tilføj den i `/tumlegaarden-data/appsettings.Production.json`:
+  ```json
+  "Security": {
+    "AllowedIpRanges": [ "203.0.113.7", "198.51.100.0/24" ]
+  }
+  ```
+- **Nødstop:** Låser filteret alle ude, kan det slås fra med `"Security": { "DenmarkOnly": false }` i samme fil. Genstart app-poolen bagefter.
+- **Afviste forsøg** logges med IP-adresse i `/tumlegaarden-logs`.
 
 ---
 
@@ -183,6 +204,9 @@ De første linjer i loggen viser:
 | Ingen invitationsmail | SMTP-oplysninger forkerte, eller mailen er i spam | Læs loggen ("Kunne ikke sende"). Tjek trin 2c og 3. |
 | Kom aldrig nogen administrator-invitation | Se afsnittet "Ingen administrator-invitation" nedenfor | |
 | Alle bliver logget ud efter hver opdatering | `keys` ligger i `public_html` i stedet for `/tumlegaarden-data` | Se rækken om datamappen ovenfor. |
+| "Ingen adgang – kun danske IP-adresser", men du er i Danmark | VPN, iCloud Privat Relay, eller adressen mangler i listen | Slå VPN/Privat Relay fra. Hjælper det ikke, så tilføj din adresse (står på siden) under `AllowedIpRanges` (afsnit 8a). |
+| Alle får "Ingen adgang" | Listen over danske adresser mangler i pakken | Loggen siger `Listen over danske IP-adresser mangler`. Brug nødstoppet i afsnit 8a, og giv udvikleren besked. |
+| Loggen advarer om "lokal/privat IP" | Sitet står bag en proxy hos Simply, så landefilteret ser proxyens adresse | Filteret lukker så alle igennem. Giv udvikleren besked, så den rigtige klientadresse kan læses fra proxyen. |
 | "For mange forsøg" | Rate limiting: maks. 30 loginforsøg pr. minut pr. IP | Vent et minut. |
 | Brugeren har mistet telefon og gendannelseskoder | | En administrator vælger **Nulstil 2FA** under Brugere. |
 

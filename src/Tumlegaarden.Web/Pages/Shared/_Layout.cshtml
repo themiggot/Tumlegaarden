@@ -3,6 +3,9 @@
     var signedIn = User.Identity?.IsAuthenticated == true && User.HasClaim("amr", "mfa");
     var role = Roles.All.FirstOrDefault(User.IsInRole);
     var status = TempData["Status"] as string;
+    // Disclaimeren vises ved første besøg – undtagen på cookie-siden, som den linker til.
+    var showDisclaimer = !Context.Request.Cookies.ContainsKey(CookieNotice.DisclaimerCookieName)
+                         && !string.Equals(Context.Request.Path, "/Cookies", StringComparison.OrdinalIgnoreCase);
 }
 <!DOCTYPE html>
 <html lang="da">
@@ -14,11 +17,13 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
+  <div class="page" inert="@showDisclaimer">
     <header class="topbar">
         <h1 class="logo"><a asp-page="/Index">Tumlegaarden</a></h1>
         @if (signedIn)
         {
             <nav class="topnav" aria-label="Hovedmenu">
+                <a asp-page="/Index">Kalender</a>
                 @if (role == Roles.Administrator)
                 {
                     <a asp-page="/Admin/Users">Brugere</a>
@@ -44,6 +49,14 @@
     </main>
 
     <footer class="footer"><a asp-page="/Cookies">Cookies og privatliv</a></footer>
-    <partial name="_CookieNotice" />
+    @if (!showDisclaimer)
+    {
+        <partial name="_CookieNotice" />
+    }
+  </div>
+  @if (showDisclaimer)
+  {
+      <partial name="_Disclaimer" />
+  }
 </body>
 </html>

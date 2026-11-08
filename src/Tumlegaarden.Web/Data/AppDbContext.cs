@@ -8,6 +8,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<IdentityUser>(options)
 {
     public DbSet<Invitation> Invitations => Set<Invitation>();
+    public DbSet<CalendarEvent> Events => Set<CalendarEvent>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -25,6 +26,16 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
                     property.SetMaxLength(255);
             }
         }
+
+        builder.Entity<CalendarEvent>(e =>
+        {
+            e.ToTable("Events");
+            e.HasIndex(x => x.StartsAt);
+            e.Property(x => x.Title).HasMaxLength(CalendarEvent.TitleMaxLength).IsRequired();
+            e.Property(x => x.Body).HasMaxLength(CalendarEvent.BodyMaxLength).IsRequired();
+            e.Property(x => x.CreatedById).HasMaxLength(255);
+            e.Property(x => x.CreatedByEmail).HasMaxLength(256);
+        });
 
         builder.Entity<Invitation>(e =>
         {
