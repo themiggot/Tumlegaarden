@@ -1,0 +1,8 @@
+ord-gyldige.txt og ord-dagens.txt er afledt af den danske ordbog fra Stavekontrolden
+(da_DK, version 2.8), som distribueres med LibreOffice og Debian/Ubuntu (pakken hunspell-da).
+
+Copyright 2007-2014 Foreningen for frit tilgængelige sprogværktøjer <info@stavekontrolden.dk>
+https://www.stavekontrolden.dk/
+
+Licens: LGPL-2.1 eller GPL-2 eller MPL-1.1 (efter eget valg).
+Tumlegaarden bruger ordlisterne under MPL-1.1: https://www.mozilla.org/en-US/MPL/1.1/

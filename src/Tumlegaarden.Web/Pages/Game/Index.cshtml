@@ -1,0 +1,161 @@
+@page "/Ordjagt"
+@model Tumlegaarden.Web.Pages.Game.IndexModel
+@using Tumlegaarden.Web.Services
+@{
+    ViewData["Title"] = "Ordjagt";
+    var error = TempData["GameError"] as string;
+    string[][] keyboard =
+    [
+        ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "å"],
+        ["a", "s", "d", "f", "g", "h", "j", "k", "l", "æ", "ø"],
+        ["enter", "z", "x", "c", "v", "b", "n", "m", "back"]
+    ];
+}
+<section class="window" id="ordjagt">
+    <h2 class="window-title">Ordjagt – dagens ord</h2>
+    <div class="window-body game">
+        <p class="hint">@(char.ToUpper(WordGame.DisplayDate(Model.Today)[0]) + WordGame.DisplayDate(Model.Today)[1..]). Find ordet på @WordGame.WordLength bogstaver i højst @WordGame.MaxAttempts forsøg. Nyt ord hver dag ved midnat.</p>
+
+        <div class="board" role="group" aria-label="Dine gæt">
+            @for (var row = 0; row < WordGame.MaxAttempts; row++)
+            {
+                if (row < Model.Rows.Count)
+                {
+                    var (word, states) = Model.Rows[row];
+                    <div class="board-row" aria-label="@(word.ToUpperInvariant()): @string.Join(", ", word.Select((c, i) => $"{char.ToUpperInvariant(c)} {Tumlegaarden.Web.Pages.Game.IndexModel.StateText(states[i])}"))">
+                        @for (var i = 0; i < WordGame.WordLength; i++)
+                        {
+                            <span class="tile @Tumlegaarden.Web.Pages.Game.IndexModel.StateClass(states[i])" aria-hidden="true">@char.ToUpperInvariant(word[i])</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="board-row@(row == Model.Rows.Count && Model.CanGuess ? " is-current" : "")" aria-hidden="true">
+                        @for (var i = 0; i < WordGame.WordLength; i++) { <span class="tile"></span> }
+                    </div>
+                }
+            }
+        </div>
+
+        @if (Model.Answer is not null)
+        {
+            <p class="game-result @(Model.Round!.Solved ? "is-won" : "is-lost")">
+                @if (Model.Round.Solved)
+                {
+                    <text>Fundet i @Model.Round.Attempts forsøg – <strong>@Model.Round.Score point</strong>.</text>
+                }
+                else
+                {
+                    <text>Ordet var <strong>@Model.Answer.ToUpperInvariant()</strong>. 0 point i dag.</text>
+                }
+                Kom igen i morgen efter midnat.
+            </p>
+        }
+        else
+        {
+            <form method="post" asp-page-handler="Guess" class="guess-form" id="guess-form" autocomplete="off">
+                @if (error is not null) { <p class="msg msg-err" role="alert">@error</p> }
+                <label for="guess">Gæt nr. @(Model.Rows.Count + 1)</label>
+                <div class="guess-row">
+                    <input id="guess" name="guess" maxlength="5" minlength="5" required autofocus autocapitalize="characters" spellcheck="false" pattern="[A-Za-zÆØÅæøå]{5}" />
+                    <button type="submit" class="btn btn-primary">Gæt</button>
+                </div>
+            </form>
+        }
+
+        <div class="keyboard" aria-hidden="true">
+            @foreach (var keys in keyboard)
+            {
+                <div class="kb-row">
+                    @foreach (var k in keys)
+                    {
+                        var label = k switch { "enter" => "Gæt", "back" => "⌫", _ => k.ToUpperInvariant() };
+                        var state = k.Length == 1 && Model.Keys.TryGetValue(k[0], out var st) ? Tumlegaarden.Web.Pages.Game.IndexModel.StateClass(st) : "";
+                        <button type="button" class="kb-key @state@(k.Length > 1 ? " kb-wide" : "")" data-key="@k" tabindex="-1" disabled="@(!Model.CanGuess)">@label</button>
+                    }
+                </div>
+            }
+        </div>
+
+        <details class="game-help">
+            <summary>Sådan spiller du</summary>
+            <ul>
+                <li><span class="tile tile-mini t-correct">A</span> Bogstavet står på den rigtige plads.</li>
+                <li><span class="tile tile-mini t-present">B</span> Bogstavet er i ordet, men et andet sted.</li>
+                <li><span class="tile tile-mini t-absent">C</span> Bogstavet er ikke i ordet.</li>
+                <li>Alle danske ord på 5 bogstaver kan bruges som gæt, også bøjninger. Æ, Ø og Å er egne bogstaver.</li>
+            </ul>
+            <table class="points-table">
+                <caption>Point</caption>
+                <tr><th>Forsøg</th>@for (var a = 1; a <= WordGame.MaxAttempts; a++) { <td>@a</td> }<td>Tabt</td></tr>
+                <tr><th>Point</th>@for (var a = 1; a <= WordGame.MaxAttempts; a++) { <td>@Tumlegaarden.Web.Pages.Game.IndexModel.PointsFor(a)</td> }<td>0</td></tr>
+            </table>
+        </details>
+    </div>
+</section>
+
+<section class="window" id="statistik">
+    <h2 class="window-title">Din statistik</h2>
+    <div class="window-body">
+        @if (Model.Me is null)
+        {
+            <p class="hint">Du har ikke spillet endnu.</p>
+        }
+        else
+        {
+            <dl class="stat-tiles">
+                <div><dt>Point i alt</dt><dd>@Model.Me.Points</dd></div>
+                <div><dt>Spillet</dt><dd>@Model.Me.Played</dd></div>
+                <div><dt>Korrekte</dt><dd>@Model.Me.Won</dd></div>
+                <div><dt>Forkerte</dt><dd>@Model.Me.Lost</dd></div>
+                <div><dt>Vundet</dt><dd>@Model.Me.WinPercent %</dd></div>
+                <div><dt>Bedste</dt><dd>@(Model.Me.Best is int b ? $"{b} forsøg" : "–")</dd></div>
+            </dl>
+            <h3>Antal forsøg i vundne spil</h3>
+            <ol class="distribution">
+                @{ var max = Math.Max(1, Model.Distribution.Max()); }
+                @for (var a = 1; a <= WordGame.MaxAttempts; a++)
+                {
+                    <li><span class="dist-label">@a</span><progress max="@max" value="@Model.Distribution[a]" aria-label="@a forsøg: @Model.Distribution[a]"></progress><span class="num">@Model.Distribution[a]</span></li>
+                }
+            </ol>
+        }
+    </div>
+</section>
+
+<section class="window" id="highscore">
+    <h2 class="window-title">Highscore</h2>
+    <div class="window-body">
+        @if (Model.Leaderboard.Count == 0)
+        {
+            <p class="hint">Ingen har spillet endnu. Bliv den første på listen.</p>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="leaderboard">
+                    <thead><tr><th>#</th><th>Spiller</th><th>Point</th><th>Korrekte</th><th>Forkerte</th><th>Bedste</th><th>Snit</th><th>I dag</th></tr></thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.Leaderboard.Count; i++)
+                        {
+                            var r = Model.Leaderboard[i];
+                            <tr class="@(r.UserId == Model.MyId ? "is-me" : "")">
+                                <td class="num">@(i + 1)</td>
+                                <td>@r.Name</td>
+                                <td class="num"><strong>@r.Points</strong></td>
+                                <td class="num">@r.Won</td>
+                                <td class="num">@r.Lost</td>
+                                <td class="num">@(r.Best?.ToString() ?? "–")</td>
+                                <td class="num">@(r.AverageAttempts is double avg ? avg.ToString("0.0", Tumlegaarden.Web.Services.DanishTime.Culture) : "–")</td>
+                                <td class="num">@r.TodayText</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="hint">Point: 100 for 1 forsøg, 80 for 2, 60 for 3, 40 for 4, 25 for 5, 10 for 6. Snit = gennemsnitligt antal forsøg i vundne spil. Et påbegyndt spil, der ikke afsluttes inden midnat, tæller som forkert.</p>
+        }
+    </div>
+</section>
+<script src="~/js/game.js" asp-append-version="true" defer></script>

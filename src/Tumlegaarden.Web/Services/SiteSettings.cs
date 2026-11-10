@@ -17,6 +17,32 @@ public sealed class SiteSettings(AppDbContext db, TimeProvider time)
             : DefaultMaxImageMegabytes;
     }
 
+    public const string GameSecretKey = "Game.Secret";
+
+    /// <summary>
+    /// Hemmelig nøgle til Ordjagt (bestemmer ordenes rækkefølge). Laves første gang og gemmes i databasen,
+    /// så dagens ord ikke kan regnes ud fra det offentlige repo.
+    /// </summary>
+    public async Task<byte[]> GetOrCreateGameSecretAsync()
+    {
+        var setting = await db.Settings.FindAsync(GameSecretKey);
+        if (setting is not null) return Convert.FromBase64String(setting.Value);
+
+        var secret = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+        db.Settings.Add(new SiteSetting { Key = GameSecretKey, Value = Convert.ToBase64String(secret), UpdatedUtc = time.GetUtcNow().UtcDateTime, UpdatedBy = "system" });
+        try
+        {
+            await db.SaveChangesAsync();
+            return secret;
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+        {
+            // En anden forespørgsel nåede at oprette nøglen samtidig – brug dens.
+            db.ChangeTracker.Clear();
+            return Convert.FromBase64String((await db.Settings.FindAsync(GameSecretKey))!.Value);
+        }
+    }
+
     public async Task SetMaxImageMegabytesAsync(int megabytes, string? changedBy)
     {
         if (megabytes is < 1 or > PhotoStore.MaxAllowedMegabytes) throw new ArgumentOutOfRangeException(nameof(megabytes));

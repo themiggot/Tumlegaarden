@@ -13,6 +13,7 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 - **Disclaimer** ved første besøg: privat side uden kommercielle interesser, kun for inviterede. Skal bekræftes med OK. Indeholder også cookie-informationen.
 - **Chat** nederst til højre på alle sider. Rummet "Alle" er for alle brugere. Diktatorer og administratorer opretter rum og vælger medlemmer under **Indstillinger** og kan se alle rum. Alle beskeder slettes automatisk efter 24 timer. Uden JavaScript virker chatten som en almindelig side på `/Chat`.
 - **Hvem er online:** "● 3 online" i menuen (navnene vises ved mus-over), en kolonne på **Brugere** med "Online" eller "Sidst set …", og en liste i chatboksen. Online = fuldt logget ind (med to-faktor) og aktiv inden for 2 minutter; chatboksen holder en åben side aktiv. Gemmes kun i hukommelsen og nulstilles ved genstart. Log ud gør en bruger offline med det samme; låste og slettede brugere vises aldrig som online.
+- **Ordjagt** (`/Ordjagt`): gæt dagens ord på 5 bogstaver i højst 6 forsøg, én gang om dagen; samme ord for alle, nyt ved midnat dansk tid. Bogstaverne markeres som rigtig plads, findes i ordet eller findes ikke (korrekt med dobbeltbogstaver). Point: 100/80/60/40/25/10 for 1–6 forsøg, 0 ved tab. Highscore med point, korrekte og forkerte spil, bedste og gennemsnit, plus egen statistik (tabellen `GameRounds`). Et påbegyndt spil, der ikke afsluttes inden midnat, tæller som forkert. Al logik kører på serveren; ordet sendes ikke til browseren før spillet er slut, og rækkefølgen af ord bestemmes af en hemmelig nøgle i databasen (repoet er offentligt). Dagens ord vælges blandt 353 håndplukkede almindelige ord (`GameData/ord-dagens.txt`); gæt godkendes mod 9.437 ord inkl. bøjninger fra Stavekontrolden (`GameData/ord-gyldige.txt`, MPL-1.1, lavet med `tools/expand_hunspell.py`).
 - **Indstillinger** samler alle indstillinger: billedstørrelse for albums (kun administratorer) og chatrum (diktatorer og administratorer).
 - **Kun adgang fra Danmark** (IP-filter på alle sider). Se [DEPLOY.md](DEPLOY.md#8a-kun-adgang-fra-danmark).
 - **Login** kun for `@tumlegaarden.dk`, kun via invitation, obligatorisk to-faktor.
@@ -65,6 +66,7 @@ kan der tilføjes rigtig SSO (OpenID Connect) med ganske få linjer i `Program.c
 
 Sitet bruger kun lidt JavaScript, og alt virker også uden:
 - `Scripts/chat.ts`: chatboksen nederst til højre.
+- `Scripts/game.ts`: skærmtastaturet i Ordjagt og visning af bogstaverne, mens man skriver.
 - `Scripts/forms.ts`: et klik hvor som helst i et dato- eller tidsfelt åbner browserens kalender eller ur, og slutdatoen kan ikke vælges før startdatoen.
 
 Det byggede JavaScript i `wwwroot/js` er committet, så `dotnet build` ikke kræver Node.
@@ -82,7 +84,7 @@ GitHub Actions stopper bygget, hvis filerne i `wwwroot/js` ikke passer til `Scri
 dotnet test tests/Tumlegaarden.Tests
 ```
 
-Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data), domænekontrollen af e-mails, rangreglerne for redigering af brugere, online-status, krypteringen af to-faktor-hemmeligheder (inkl. konvertering af gamle værdier) og billedbehandlingen (alle 8 EXIF-orienteringer, fjernelse af metadata, formater og afvisning af ikke-billeder; testbillederne ligger i `tests/Tumlegaarden.Tests/Fixtures`). Kører også ved hvert byg på GitHub.
+Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data), domænekontrollen af e-mails, rangreglerne for redigering af brugere, online-status, krypteringen af to-faktor-hemmeligheder (inkl. konvertering af gamle værdier), Ordjagt (vurdering af gæt med dobbeltbogstaver, point, ordlister og at dagens ord ikke gentages) og billedbehandlingen (alle 8 EXIF-orienteringer, fjernelse af metadata, formater og afvisning af ikke-billeder; testbillederne ligger i `tests/Tumlegaarden.Tests/Fixtures`). Kører også ved hvert byg på GitHub.
 
 ## Tredjepartskomponenter
 
@@ -90,6 +92,7 @@ Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende dat
 - **MailKit**, **QRCoder**, **MySql.EntityFrameworkCore**: MIT/GPL-kompatible open source-licenser.
 - **Skrifttyper:** DotGothic16 og Silkscreen (SIL Open Font License), ligger i `wwwroot/fonts`.
 - **IP-data:** NRO via ip-location-db (CC BY 4.0), se `GeoData/LICENSE-NRO.txt`.
+- **Ordlister til Ordjagt:** Stavekontrolden da_DK 2.8 (LGPL-2.1/GPL-2/MPL-1.1, brugt under MPL-1.1), se `GameData/LICENSE-Stavekontrolden.txt`.
 
 ## Kør lokalt
 
