@@ -25,10 +25,10 @@
         {
             <nav class="topnav" aria-label="Hovedmenu">
                 <a asp-page="/Index" class="nav-home" aria-current="@(Context.Request.Path == "/" ? "page" : null)">Start</a>
+                <a asp-page="/Game/Index" class="nav-game" aria-current="@(Context.Request.Path.StartsWithSegments("/Ordjagt") ? "page" : null)">Ordjagt</a>
                 <a asp-page="/Calendar">Kalender</a>
                 <a asp-page="/Albums/Index">Albums</a>
                 <a asp-page="/Chat/Index">Chat</a>
-                <a asp-page="/Game/Index">Ordjagt</a>
                 <a asp-page="/Users">Brugere</a>
                 @if (role is Roles.Administrator or Roles.Diktator)
                 {

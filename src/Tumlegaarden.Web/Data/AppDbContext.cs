@@ -118,6 +118,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             e.Property(x => x.UserId).HasMaxLength(255);
             e.Property(x => x.UserEmail).HasMaxLength(256);
             e.Property(x => x.Guesses).HasMaxLength(64).IsRequired();
+            e.Property(x => x.Answer).HasMaxLength(16);
             e.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 

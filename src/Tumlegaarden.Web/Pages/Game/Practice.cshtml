@@ -1,0 +1,43 @@
+@page "/Ordjagt/Oev"
+@model Tumlegaarden.Web.Pages.Game.PracticeModel
+@using Tumlegaarden.Web.Services
+@{
+    ViewData["Title"] = "Ordjagt – øvespil";
+}
+<section class="window" id="oevespil">
+    <h2 class="window-title">Ordjagt – øvespil</h2>
+    <div class="window-body game">
+        <div class="game-head">
+            <p class="hint">Spil så mange gange du vil med tilfældige ord. Øvespil tæller <strong>ikke</strong> med i highscoren, og dagens ord dukker aldrig op her.</p>
+            <a class="btn btn-small" asp-page="/Game/Index">Til dagens ord</a>
+        </div>
+
+        <partial name="_Board" model="Model.Board" />
+
+        @if (Model.Finished)
+        {
+            <div class="game-result @(Model.Solved ? "is-won" : "is-lost")">
+                @if (Model.Solved) { <text>Fundet i @Model.Attempts forsøg.</text> }
+                else { <text>Ordet var <strong>@Model.Answer!.ToUpperInvariant()</strong>.</text> }
+            </div>
+            <form method="post" asp-page-handler="New">
+                <button type="submit" class="btn btn-primary" autofocus>Nyt øvespil</button>
+            </form>
+        }
+        else
+        {
+            <partial name="_GuessForm" model="Model.Board" />
+        }
+
+        <partial name="_Keyboard" model="Model.Board" />
+
+        <p class="hint practice-count">
+            Øvespil i denne browsersession: @Model.Played spillet, @Model.Won vundet.
+            @if (!Model.Finished && Model.Attempts > 0)
+            {
+                <form method="post" asp-page-handler="New" class="inline-form"><button type="submit" class="linklike">Giv op og start forfra</button></form>
+            }
+        </p>
+    </div>
+</section>
+<script src="~/js/game.js" asp-append-version="true" defer></script>

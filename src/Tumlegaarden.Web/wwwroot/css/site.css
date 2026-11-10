@@ -83,6 +83,22 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 #fbe9b4, inset calc(var(--b) * -1) calc(var(--b) * -1) 0 #b8952f; }
 .topnav > a.nav-home:hover { background: #f8df98; }
 .topnav > a.nav-home[aria-current="page"] { box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 #b8952f, inset calc(var(--b) * -1) calc(var(--b) * -1) 0 #fbe9b4; }
+/* "Ordjagt" glimter: en regnbue glider hen over knappen i pixeltrin, og en stjerne blinker. */
+.topnav > a.nav-game { position: relative; padding: 3px 12px 3px 24px; color: var(--ink); text-decoration: none;
+    background: linear-gradient(100deg, #8ff0dc 0%, #b79cff 18%, #ff9ed8 36%, #ffe27a 54%, #8ff0dc 72%, #b79cff 90%, #ff9ed8 100%);
+    background-size: 400% 100%;
+    animation: nav-shimmer 3.2s steps(16) infinite;
+    box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 rgba(255,255,255,.55), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 rgba(0,0,0,.25); }
+.topnav > a.nav-game::before { content: "\2726"; position: absolute; left: 7px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #fff;
+    text-shadow: 0 0 2px #fff; animation: nav-twinkle 1.6s steps(2) infinite; }
+.topnav > a.nav-game:hover { filter: brightness(1.08); }
+.topnav > a.nav-game[aria-current="page"] { box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 rgba(0,0,0,.25), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 rgba(255,255,255,.55); }
+@keyframes nav-shimmer { from { background-position: 0% 0; } to { background-position: 100% 0; } }
+@keyframes nav-twinkle { 0% { opacity: 1; } 50% { opacity: .25; } 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    .topnav > a.nav-game, .topnav > a.nav-game::before { animation: none; }
+}
+
 /* Hvem er online */
 .topnav > a.online-now { display: inline-flex; align-items: center; gap: 6px; color: #b9c2cc; font-weight: 400; font-size: 15px; text-decoration: none; }
 .topnav > a.online-now:hover { text-decoration: underline; }
@@ -474,6 +490,10 @@ code { font-family: ui-monospace, "Courier New", monospace; font-size: 15px; }
 
 /* ---------- Ordjagt ---------- */
 .game { display: flex; flex-direction: column; align-items: center; }
+.game-head { align-self: stretch; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; margin-bottom: 6px; }
+.game-head .hint { flex: 1 1 320px; margin: 0 !important; }
+.practice-count { align-self: stretch; text-align: center; margin-top: 10px !important; }
+.inline-form { display: inline; }
 .game > .hint { align-self: stretch; }
 .board { display: grid; gap: 6px; margin: 6px 0 16px; }
 .board-row { display: grid; grid-template-columns: repeat(5, 52px); gap: 6px; }

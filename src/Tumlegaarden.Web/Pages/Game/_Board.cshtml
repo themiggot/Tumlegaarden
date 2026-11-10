@@ -1,0 +1,24 @@
+@model Tumlegaarden.Web.Pages.Game.BoardView
+@using Tumlegaarden.Web.Services
+@using Tumlegaarden.Web.Pages.Game
+<div class="board" role="group" aria-label="Dine gæt">
+    @for (var row = 0; row < WordGame.MaxAttempts; row++)
+    {
+        if (row < Model.Rows.Count)
+        {
+            var (word, states) = Model.Rows[row];
+            <div class="board-row" aria-label="@(word.ToUpperInvariant()): @string.Join(", ", word.Select((c, i) => $"{char.ToUpperInvariant(c)} {BoardView.StateText(states[i])}"))">
+                @for (var i = 0; i < WordGame.WordLength; i++)
+                {
+                    <span class="tile @BoardView.StateClass(states[i])" aria-hidden="true">@char.ToUpperInvariant(word[i])</span>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="board-row@(row == Model.Rows.Count && Model.CanGuess ? " is-current" : "")" aria-hidden="true">
+                @for (var i = 0; i < WordGame.WordLength; i++) { <span class="tile"></span> }
+            </div>
+        }
+    }
+</div>

@@ -10,6 +10,9 @@ public sealed class GameRound
     public DateTime Date { get; set; }
     /// <summary>Gættene adskilt af semikolon, fx "huset;skole".</summary>
     public string Guesses { get; set; } = "";
+    /// <summary>Ordet spillet blev spillet med. Gemmes, så spillet vises rigtigt, selv hvis ordlisten ændres senere.
+    /// Null for spil fra før kolonnen fandtes.</summary>
+    public string? Answer { get; set; }
     public int Attempts { get; set; }
     public bool Solved { get; set; }
     public bool Finished { get; set; }

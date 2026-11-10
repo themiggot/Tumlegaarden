@@ -60,7 +60,7 @@ jobs:
           test -f publish/wwwroot/js/forms.js
           test -f publish/wwwroot/js/game.js
           test "$(grep -vc '^#' publish/GameData/ord-gyldige.txt)" -gt 9000
-          test "$(grep -vc '^#' publish/GameData/ord-dagens.txt)" -gt 300
+          test "$(grep -vc '^#' publish/GameData/ord-dagens.txt)" -gt 1000
           test ! -f publish/tsconfig.json
           grep -q enableShadowCopy publish/web.config
           grep -q 'stdoutLogEnabled="true"' publish/web.config

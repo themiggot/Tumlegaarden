@@ -1,0 +1,23 @@
+@model Tumlegaarden.Web.Pages.Game.BoardView
+@using Tumlegaarden.Web.Pages.Game
+@{
+    string[][] keyboard =
+    [
+        ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "å"],
+        ["a", "s", "d", "f", "g", "h", "j", "k", "l", "æ", "ø"],
+        ["enter", "z", "x", "c", "v", "b", "n", "m", "back"]
+    ];
+}
+<div class="keyboard" aria-hidden="true">
+    @foreach (var keys in keyboard)
+    {
+        <div class="kb-row">
+            @foreach (var k in keys)
+            {
+                var label = k switch { "enter" => "Gæt", "back" => "⌫", _ => k.ToUpperInvariant() };
+                var state = k.Length == 1 && Model.Keys.TryGetValue(k[0], out var st) ? BoardView.StateClass(st) : "";
+                <button type="button" class="kb-key @state@(k.Length > 1 ? " kb-wide" : "")" data-key="@k" tabindex="-1" disabled="@(!Model.CanGuess)">@label</button>
+            }
+        </div>
+    }
+</div>

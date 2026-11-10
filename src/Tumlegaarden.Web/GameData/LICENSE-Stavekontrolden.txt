@@ -6,3 +6,8 @@ https://www.stavekontrolden.dk/
 
 Licens: LGPL-2.1 eller GPL-2 eller MPL-1.1 (efter eget valg).
 Tumlegaarden bruger ordlisterne under MPL-1.1: https://www.mozilla.org/en-US/MPL/1.1/
+
+Udvælgelsen af almindelige ord i ord-dagens.txt bygger desuden på ordfrekvenser fra
+FrequencyWords (https://github.com/hermitdave/FrequencyWords) af Hermit Dave, som er afledt af
+OpenSubtitles (http://www.opensubtitles.org/). Data: CC BY-SA 4.0
+(https://creativecommons.org/licenses/by-sa/4.0/).

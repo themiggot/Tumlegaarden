@@ -89,7 +89,17 @@ public sealed class WordGame
 
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string[]> _orders = new();
 
-    /// <summary>Tastaturets tilstand: den bedste tilstand hvert bogstav har opnået i gættene.</summary>
+    /// <summary>Tilfældigt ord til øvespil – aldrig et af de udelukkede (fx dagens ord).</summary>
+    public string RandomWord(params string?[] exclude)
+    {
+        var excluded = exclude.Where(e => e is not null).Select(Normalize).ToHashSet();
+        string word;
+        do word = _solutions[Random.Shared.Next(_solutions.Length)];
+        while (excluded.Contains(word) && excluded.Count < _solutions.Length);
+        return word;
+    }
+
+        /// <summary>Tastaturets tilstand: den bedste tilstand hvert bogstav har opnået i gættene.</summary>
     public static Dictionary<char, LetterState> KeyStates(IEnumerable<string> guesses, string answer)
     {
         var keys = new Dictionary<char, LetterState>();

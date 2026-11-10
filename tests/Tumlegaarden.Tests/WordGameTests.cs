@@ -10,7 +10,7 @@ public class WordGameTests
     [Fact]
     public void Lists_AreLoaded()
     {
-        Assert.True(Game.SolutionCount >= 300, $"Kun {Game.SolutionCount} mulige dagens ord");
+        Assert.True(Game.SolutionCount >= 1000, $"Kun {Game.SolutionCount} mulige dagens ord");
         Assert.True(Game.ValidCount >= 9000, $"Kun {Game.ValidCount} gyldige gæt");
     }
 
@@ -78,6 +78,18 @@ public class WordGameTests
     }
 
     [Fact]
+    public void RandomWord_NeverReturnsExcludedWords()
+    {
+        var excluded = Game.WordFor(new DateOnly(2026, 11, 10), new byte[32]);
+        for (var i = 0; i < 2000; i++)
+        {
+            var w = Game.RandomWord(excluded);
+            Assert.NotEqual(excluded, w);
+            Assert.True(Game.IsValidGuess(w));
+        }
+    }
+
+        [Fact]
     public void KeyStates_KeepBestState()
     {
         var keys = WordGame.KeyStates(["skole", "hoppe"], "hoppe");

@@ -1,0 +1,9 @@
+@model Tumlegaarden.Web.Pages.Game.BoardView
+<form method="post" asp-page-handler="Guess" class="guess-form" id="guess-form" autocomplete="off">
+    @if (Model.Error is not null) { <p class="msg msg-err" role="alert">@Model.Error</p> }
+    <label for="guess">Gæt nr. @(Model.Rows.Count + 1)</label>
+    <div class="guess-row">
+        <input id="guess" name="guess" maxlength="5" minlength="5" required autofocus autocapitalize="characters" spellcheck="false" pattern="[A-Za-zÆØÅæøå]{5}" />
+        <button type="submit" class="btn btn-primary">Gæt</button>
+    </div>
+</form>

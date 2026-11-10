@@ -22,6 +22,8 @@ public class IndexModel(AppDbContext db, UserManager<IdentityUser> userManager, 
     public LeaderRow? Me { get; private set; }
     public int[] Distribution { get; private set; } = new int[WordGame.MaxAttempts + 1];
     public bool CanGuess => Round is not { Finished: true };
+    public string? ErrorMessage { get; private set; }
+    public BoardView Board => new(Rows, Keys, CanGuess, ErrorMessage);
     public string? MyId { get; private set; }
 
     public sealed record LeaderRow(string UserId, string Name, int Points, int Won, int Lost, int? Best, double? AverageAttempts, string TodayText)
@@ -55,7 +57,7 @@ public class IndexModel(AppDbContext db, UserManager<IdentityUser> userManager, 
             db.GameRounds.Add(round);
         }
 
-        var answer = game.WordFor(today, await settings.GetOrCreateGameSecretAsync());
+        var answer = round.Answer ??= game.WordFor(today, await settings.GetOrCreateGameSecretAsync());
         round.Guesses = round.Guesses.Length == 0 ? word : $"{round.Guesses};{word}";
         round.Attempts++;
         round.Solved = word == answer;
@@ -91,6 +93,7 @@ public class IndexModel(AppDbContext db, UserManager<IdentityUser> userManager, 
 
     private async Task LoadAsync()
     {
+        ErrorMessage = TempData["GameError"] as string;
         Today = DanishTime.Today(time);
         var date = Today.ToDateTime(TimeOnly.MinValue);
         MyId = userManager.GetUserId(User);
@@ -98,6 +101,7 @@ public class IndexModel(AppDbContext db, UserManager<IdentityUser> userManager, 
 
         var rounds = await db.GameRounds.AsNoTracking().ToListAsync();
         Round = rounds.FirstOrDefault(r => r.UserId == MyId && r.Date == date);
+        if (Round?.Answer is { Length: > 0 } stored) answer = stored;
         if (Round is not null)
         {
             Rows = Round.GuessList.Select(g => (g, WordGame.Evaluate(g, answer))).ToList();
@@ -131,18 +135,4 @@ public class IndexModel(AppDbContext db, UserManager<IdentityUser> userManager, 
         Me = Leaderboard.FirstOrDefault(r => r.UserId == MyId);
         foreach (var r in rounds.Where(r => r.UserId == MyId && r.Solved)) Distribution[r.Attempts]++;
     }
-
-    public static string StateClass(LetterState s) => s switch
-    {
-        LetterState.Correct => "t-correct",
-        LetterState.Present => "t-present",
-        _ => "t-absent"
-    };
-
-    public static string StateText(LetterState s) => s switch
-    {
-        LetterState.Correct => "rigtig plads",
-        LetterState.Present => "findes et andet sted",
-        _ => "findes ikke"
-    };
 }
