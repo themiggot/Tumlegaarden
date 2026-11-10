@@ -82,6 +82,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(o =>
         o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
     })
     .AddEntityFrameworkStores<AppDbContext>()
+    .AddUserStore<ProtectedUserStore>()   // krypterer authenticator-nøgler og hasher gendannelseskoder
     .AddDefaultTokenProviders()
     .AddErrorDescriber<DanishIdentityErrorDescriber>()
     .AddUserValidator<DomainEmailUserValidator>()

@@ -21,6 +21,7 @@ public static class StartupTasks
         await db.Database.EnsureCreatedAsync();
         await SchemaUpdater.CreateMissingTablesAsync(db, log);
         await SchemaUpdater.AddMissingColumnsAsync(db, log);
+        await TwoFactorSecretMigrator.MigrateAsync(db, sp.GetRequiredService<Microsoft.AspNetCore.DataProtection.IDataProtectionProvider>(), log);
         await sp.GetRequiredService<ChatService>().EnsureGlobalRoomAsync();
 
         var roleManager = sp.GetRequiredService<RoleManager<IdentityRole>>();

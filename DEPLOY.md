@@ -15,7 +15,7 @@ Simply.com:
 ├── tumlegaarden-logs/    ← log fra sitet. Oprettes automatisk, én fil pr. opstart.
 ├── tumlegaarden-data/    ← hemmeligheder og data. Røres aldrig af importen.
 │   ├── appsettings.Production.json   (du opretter den, trin 3)
-│   ├── keys/                         (oprettes af sitet: nøgler til login-cookies)
+│   ├── keys/                         (oprettes af sitet: nøgler til login-cookies og to-faktor – SKAL MED I BACKUP)
 │   ├── albums/                       (oprettes af sitet: billeder fra albums)
 │   └── tmp/                          (oprettes af sitet: midlertidige filer under upload)
 └── tumlegaarden-shadow/  ← oprettes af IIS: kopien af appen, der rent faktisk kører
@@ -161,7 +161,7 @@ Ser du noget andet end login-siden, så gå til afsnit 9.
 2. Kør **Importer fra Git**.
 3. Slet `app_offline.htm`, hvis den stadig ligger der.
 
-Rør aldrig `/tumlegaarden-data`. Slettes `keys`, bliver alle logget ud. Slettes `appsettings.Production.json`, kan sitet ikke nå databasen. Slettes `albums`, forsvinder alle billeder.
+Rør aldrig `/tumlegaarden-data`. Slettes `keys`, bliver alle logget ud, og koderne fra authenticator-appen virker ikke længere (se "Mappen keys er væk" under Fejlsøgning). Slettes `appsettings.Production.json`, kan sitet ikke nå databasen. Slettes `albums`, forsvinder alle billeder.
 
 ---
 
@@ -214,6 +214,7 @@ De første linjer i loggen viser:
 | `/Albums` giver IIS-fejlen **HTTP 404.0** med handler `StaticFile` | `web.config` har en ekstra `<location path="…">`-blok, som fjerner ASP.NET for stien | Rettet i koden. Workflowet stopper nu bygget, hvis det sker igen. Importér seneste version. |
 | Upload fejler, og loggen nævner `tmp` eller adgang nægtet | Sitet kan ikke skrive i `/tumlegaarden-data/tmp` eller `albums` | Tjek at app-poolen har skriveadgang til `/tumlegaarden-data` (den kan skrive `keys`, så det burde virke). |
 | Pladsen på webhotellet løber tør | Billederne fylder | Albumsiden viser, hvor meget billederne bruger. Slet gamle albums, eller udvid pladsen hos Simply. |
+| Koden fra authenticator-appen bliver altid afvist, for alle brugere | Mappen `/tumlegaarden-data/keys` er slettet eller udskiftet, så de krypterede to-faktor-nøgler ikke kan læses | Gendan `keys` fra backup. Ellers: log ind med en **gendannelseskode** (de virker stadig), og lad en anden administrator nulstille to-faktor for dig under **Brugere**. Nulstil derefter to-faktor for de øvrige brugere. |
 | "For mange forsøg" | Rate limiting: maks. 30 loginforsøg pr. minut pr. IP | Vent et minut. |
 | Brugeren har mistet telefon og gendannelseskoder | | En administrator vælger **Nulstil 2FA** under Brugere. |
 
@@ -251,7 +252,7 @@ Trin 2–3 (Simply-forberedelse og datamappe) gælder også her.
 ## 11. Backup og sikkerhed
 
 - **Database:** Tag jævnligt backup af MySQL-databasen via kontrolpanelet. Se også **Website → Genskab data**.
-- **`/tumlegaarden-data`:** Tag backup af hele mappen sammen med databasen. Den indeholder også alle billeder fra albums (`albums/`), og de findes ingen andre steder.
+- **`/tumlegaarden-data`:** Tag backup af hele mappen sammen med databasen. `keys` er nødvendig for at læse de krypterede to-faktor-nøgler i databasen; uden den virker authenticator-koderne ikke. Opbevar backup af `keys` adskilt fra databasebackuppen, så et læk af den ene ikke afslører hemmelighederne. Den indeholder også alle billeder fra albums (`albums/`), og de findes ingen andre steder.
 - **Hemmeligheder:** `appsettings.Production.json` findes kun i `/tumlegaarden-data` og hos dig. Læg den aldrig på GitHub eller i mails. Skift adgangskoderne, hvis den slipper ud.
 - **Repoet er offentligt.** Læg aldrig adgangskoder, forbindelsesstrenge eller persondata i repoet. GitHub Actions tjekker, at `appsettings.Production.json` ikke kommer med i pakken.
 - **Administratorer:** Hav altid mindst to administratorer, så en mistet telefon ikke låser alle ude.

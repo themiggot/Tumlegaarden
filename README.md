@@ -48,6 +48,7 @@ Tilføjer I senere statistik eller andet, der ikke er nødvendigt, skal meddelel
 | Oprettelse | Kun via engangs-invitation fra en administrator. Linket sendes til adressen og beviser dermed ejerskab af mailen. |
 | Adgangskode | Mindst 14 tegn, store og små bogstaver, tal, specialtegn, mindst 6 forskellige tegn. Må ikke indeholde e-mailen, "tumlegaarden" eller almindelige ord/mønstre, og afvises hvis den findes i kendte datalæk (Have I Been Pwned, k-anonymity – adgangskoden forlader aldrig serveren). |
 | Hashing | PBKDF2-HMAC-SHA512 med 210.000 iterationer (OWASP-anbefaling). |
+| To-faktor-hemmeligheder | Authenticator-nøglen krypteres med ASP.NET Data Protection (nøgler i `/tumlegaarden-data/keys`, ikke i databasen). Gendannelseskoderne hashes med PBKDF2-SHA256 (20.000 iterationer, salt pr. kode). Et læk af databasen alene afslører hverken adgangskoder, nøgler eller koder. Ældre værdier i klartekst konverteres automatisk ved opstart. |
 | To-faktor | **Obligatorisk** TOTP (authenticator-app). Uden 2FA kan man kun se opsætningssiden. 10 engangs-gendannelseskoder. |
 | Brute force | Kontoen låses 15 min efter 5 forkerte forsøg. Maks. 30 login-/oprettelsesforsøg pr. minut pr. IP. |
 | Kontoopslag | Login og "glemt kode" svarer ens uanset om kontoen findes. |
@@ -81,7 +82,7 @@ GitHub Actions stopper bygget, hvis filerne i `wwwroot/js` ikke passer til `Scri
 dotnet test tests/Tumlegaarden.Tests
 ```
 
-Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data), domænekontrollen af e-mails, rangreglerne for redigering af brugere, online-status og billedbehandlingen (alle 8 EXIF-orienteringer, fjernelse af metadata, formater og afvisning af ikke-billeder; testbillederne ligger i `tests/Tumlegaarden.Tests/Fixtures`). Kører også ved hvert byg på GitHub.
+Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data), domænekontrollen af e-mails, rangreglerne for redigering af brugere, online-status, krypteringen af to-faktor-hemmeligheder (inkl. konvertering af gamle værdier) og billedbehandlingen (alle 8 EXIF-orienteringer, fjernelse af metadata, formater og afvisning af ikke-billeder; testbillederne ligger i `tests/Tumlegaarden.Tests/Fixtures`). Kører også ved hvert byg på GitHub.
 
 ## Tredjepartskomponenter
 
