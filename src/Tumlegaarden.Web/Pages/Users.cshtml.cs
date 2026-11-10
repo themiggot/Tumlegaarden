@@ -20,6 +20,7 @@ public class UsersModel(
     InvitationService invitations,
     IAppEmailSender emailSender,
     IOptions<SecurityOptions> options,
+    PresenceTracker presence,
     ILogger<UsersModel> logger) : PageModel
 {
     // DateTimeOffset.MaxValue kan ikke gemmes i MySQL's datetime – år 9000 virker i alle databaser.
@@ -35,7 +36,7 @@ public class UsersModel(
     public string? NewInviteLink { get; private set; }
     public string? NewInviteEmail { get; private set; }
 
-    public sealed record UserRow(string Id, string Email, string Role, bool TwoFactor, bool Locked, bool IsSelf, bool CanManage);
+    public sealed record UserRow(string Id, string Email, string Role, bool TwoFactor, bool Locked, bool IsSelf, bool CanManage, bool Online, string Presence);
 
     public sealed class InviteInput
     {
@@ -119,6 +120,7 @@ public class UsersModel(
         await userManager.SetLockoutEnabledAsync(user, true);
         await userManager.SetLockoutEndDateAsync(user, PermanentLock);
         await userManager.UpdateSecurityStampAsync(user);
+        presence.Block(user.Id);
         logger.LogInformation("{Actor} låste {UserId}.", User.Identity?.Name, user.Id);
         return Done($"{user.Email} er låst.");
     }
@@ -128,6 +130,7 @@ public class UsersModel(
         if (await ManageableAsync(id) is not { } user) return Forbid();
         await userManager.SetLockoutEndDateAsync(user, null);
         await userManager.ResetAccessFailedCountAsync(user);
+        presence.Unblock(user.Id);
         return Done($"{user.Email} er låst op.");
     }
 
@@ -146,6 +149,7 @@ public class UsersModel(
         if (await ManageableAsync(id) is not { } user) return Forbid();
         if (!confirm) return Done("Sæt flueben i Bekræft for at slette.");
         await userManager.DeleteAsync(user);
+        presence.Forget(user.Id);
         logger.LogInformation("{Actor} slettede {UserId}.", User.Identity?.Name, user.Id);
         return Done($"{user.Email} er slettet.");
     }
@@ -177,9 +181,10 @@ public class UsersModel(
             var role = (await userManager.GetRolesAsync(u)).FirstOrDefault() ?? "–";
             var isSelf = u.Id == selfId;
             rows.Add(new UserRow(u.Id, u.Email ?? "", role, u.TwoFactorEnabled, u.LockoutEnd > now, isSelf,
-                !isSelf && IsModerator && Roles.CanManage(User, role)));
+                !isSelf && IsModerator && Roles.CanManage(User, role), presence.IsOnline(u.Id), presence.StatusText(u.Id)));
         }
-        Users = rows.OrderByDescending(r => Roles.Rank(r.Role)).ThenBy(r => r.Email).ToList();
+        // Online først, derefter efter niveau og e-mail.
+        Users = rows.OrderByDescending(r => r.Online).ThenByDescending(r => Roles.Rank(r.Role)).ThenBy(r => r.Email).ToList();
         if (IsAdmin) Pending = await invitations.PendingAsync();
     }
 }

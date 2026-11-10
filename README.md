@@ -12,6 +12,7 @@ Der er **ingen JavaScript** på sitet – alt kører på serveren, og CSP-header
 - **Chatbeskeder slettes efter 24 timer** af et baggrundsjob (hvert kvarter og ved opstart). Gamle beskeder vises heller ikke, selv hvis appen har været i dvale, og jobbet ikke har kørt.
 - **Disclaimer** ved første besøg: privat side uden kommercielle interesser, kun for inviterede. Skal bekræftes med OK. Indeholder også cookie-informationen.
 - **Chat** nederst til højre på alle sider. Rummet "Alle" er for alle brugere. Diktatorer og administratorer opretter rum og vælger medlemmer under **Indstillinger** og kan se alle rum. Alle beskeder slettes automatisk efter 24 timer. Uden JavaScript virker chatten som en almindelig side på `/Chat`.
+- **Hvem er online:** "● 3 online" i menuen (navnene vises ved mus-over), en kolonne på **Brugere** med "Online" eller "Sidst set …", og en liste i chatboksen. Online = fuldt logget ind (med to-faktor) og aktiv inden for 2 minutter; chatboksen holder en åben side aktiv. Gemmes kun i hukommelsen og nulstilles ved genstart. Log ud gør en bruger offline med det samme; låste og slettede brugere vises aldrig som online.
 - **Indstillinger** samler alle indstillinger: billedstørrelse for albums (kun administratorer) og chatrum (diktatorer og administratorer).
 - **Kun adgang fra Danmark** (IP-filter på alle sider). Se [DEPLOY.md](DEPLOY.md#8a-kun-adgang-fra-danmark).
 - **Login** kun for `@tumlegaarden.dk`, kun via invitation, obligatorisk to-faktor.
@@ -80,7 +81,7 @@ GitHub Actions stopper bygget, hvis filerne i `wwwroot/js` ikke passer til `Scri
 dotnet test tests/Tumlegaarden.Tests
 ```
 
-Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data), domænekontrollen af e-mails, rangreglerne for redigering af brugere og billedbehandlingen (alle 8 EXIF-orienteringer, fjernelse af metadata, formater og afvisning af ikke-billeder; testbillederne ligger i `tests/Tumlegaarden.Tests/Fixtures`). Kører også ved hvert byg på GitHub.
+Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data), domænekontrollen af e-mails, rangreglerne for redigering af brugere, online-status og billedbehandlingen (alle 8 EXIF-orienteringer, fjernelse af metadata, formater og afvisning af ikke-billeder; testbillederne ligger i `tests/Tumlegaarden.Tests/Fixtures`). Kører også ved hvert byg på GitHub.
 
 ## Tredjepartskomponenter
 

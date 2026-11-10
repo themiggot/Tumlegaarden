@@ -11,7 +11,7 @@ namespace Tumlegaarden.Web.Pages.Chat;
 /// Chat som almindelig side (virker uden JavaScript) og JSON-endepunkter til chatboksen nederst til højre.
 /// </summary>
 [EnableRateLimiting("chat")]
-public class IndexModel(ChatService chat, ILogger<IndexModel> logger) : PageModel
+public class IndexModel(ChatService chat, PresenceTracker presence, ILogger<IndexModel> logger) : PageModel
 {
     public List<ChatRoom> Rooms { get; private set; } = [];
     public ChatRoom? Room { get; private set; }
@@ -29,7 +29,12 @@ public class IndexModel(ChatService chat, ILogger<IndexModel> logger) : PageMode
 
     /// <summary>Rum brugeren har adgang til, med id på seneste besked (til ulæst-markering).</summary>
     public async Task<IActionResult> OnGetRoomsAsync() =>
-        new JsonResult(new { rooms = await chat.RoomSummariesAsync(User), canManage = CanManage });
+        new JsonResult(new
+        {
+            rooms = await chat.RoomSummariesAsync(User),
+            canManage = CanManage,
+            online = presence.Online().Select(o => o.DisplayName)
+        });
 
     public async Task<IActionResult> OnGetMessagesAsync(int room, long after = 0)
     {

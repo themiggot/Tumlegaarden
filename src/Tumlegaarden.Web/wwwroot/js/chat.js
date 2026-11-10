@@ -77,7 +77,9 @@ function init(root) {
     form.append(textLabel, text, send);
     const status = el("p", "chat-status");
     status.setAttribute("role", "status");
-    body.replaceChildren(bar, list, form, status);
+    const online = el("p", "chat-online");
+    online.setAttribute("aria-label", "Online nu");
+    body.replaceChildren(bar, online, list, form, status);
     // --- Hjælpere ---
     const setStatus = (message) => { status.textContent = message; };
     const nearBottom = () => list.scrollHeight - list.scrollTop - list.clientHeight < 60;
@@ -122,6 +124,11 @@ function init(root) {
                 option.textContent = (unread.includes(room) ? "• " : "") + room.name;
         }
     };
+    const renderOnline = (names) => {
+        const dot = el("span", "online-dot");
+        dot.setAttribute("aria-hidden", "true");
+        online.replaceChildren(dot, `Online (${names.length}): ${names.length > 0 ? names.join(", ") : "ingen"}`);
+    };
     const endSession = () => {
         stopped = true;
         window.clearTimeout(timer);
@@ -131,6 +138,7 @@ function init(root) {
     // --- Server ---
     const loadRooms = async () => {
         const data = await getJson(`${endpoint}?handler=Rooms`);
+        renderOnline(data.online ?? []);
         const firstLoad = rooms.length === 0;
         rooms = data.rooms;
         // Første gang: gammel historik tæller ikke som ulæst.

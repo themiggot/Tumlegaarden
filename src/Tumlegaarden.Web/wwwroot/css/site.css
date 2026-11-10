@@ -83,6 +83,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 #fbe9b4, inset calc(var(--b) * -1) calc(var(--b) * -1) 0 #b8952f; }
 .topnav > a.nav-home:hover { background: #f8df98; }
 .topnav > a.nav-home[aria-current="page"] { box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 #b8952f, inset calc(var(--b) * -1) calc(var(--b) * -1) 0 #fbe9b4; }
+/* Hvem er online */
+.topnav > a.online-now { display: inline-flex; align-items: center; gap: 6px; color: #b9c2cc; font-weight: 400; font-size: 15px; text-decoration: none; }
+.topnav > a.online-now:hover { text-decoration: underline; }
+.online-dot { display: inline-block; width: 9px; height: 9px; flex: none; background: var(--face-lo); box-shadow: 0 0 0 1px var(--edge); }
+.online-now .online-dot, .is-online .online-dot, .chat-online .online-dot { background: #6fd36a; }
+.presence { white-space: nowrap; color: var(--muted); }
+.presence .online-dot { margin-right: 6px; }
+.presence.is-online { color: var(--ok); font-weight: 700; }
+.chat-online { margin: 0; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.chat-online .online-dot { margin-right: 6px; }
 .who { color: #b9c2cc; font-size: 15px; overflow-wrap: anywhere; }
 
 /* ---------- Scene ---------- */

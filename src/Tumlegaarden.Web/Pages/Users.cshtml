@@ -57,11 +57,11 @@
 </section>
 }
 
-<section class="window window-wide">
+<section class="window window-wide" id="brugere">
     <h2 class="window-title">Brugere</h2>
     <div class="window-body">
         <p class="hint">
-            Niveauer fra flest til færrest rettigheder: Administrator, Diktator, Børler.
+            Niveauer fra flest til færrest rettigheder: Administrator, Diktator, Børler. Online betyder aktiv på siden inden for de sidste 2 minutter.
             @if (Model.IsAdmin) { <text>Du kan redigere alle brugere undtagen dig selv.</text> }
             else if (Model.IsModerator) { <text>Du kan redigere børlere. Kun administratorer kan invitere nye brugere.</text> }
             else { <text>Kun diktatorer og administratorer kan redigere brugere.</text> }
@@ -70,7 +70,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>E-mail</th><th>Niveau</th>
+                        <th>E-mail</th><th>Online</th><th>Niveau</th>
                         @if (Model.IsModerator) { <th>Status</th><th>Handlinger</th> }
                     </tr>
                 </thead>
@@ -79,6 +79,7 @@
                     {
                         <tr>
                             <td>@u.Email @if (u.IsSelf) { <span class="hint">(dig)</span> }</td>
+                            <td class="presence@(u.Online ? " is-online" : "")"><span class="online-dot" aria-hidden="true"></span>@u.Presence</td>
                             <td>
                                 @if (u.CanManage)
                                 {

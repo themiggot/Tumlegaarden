@@ -32,6 +32,7 @@ builder.Services.AddSingleton<PhotoStore>();
 builder.Services.AddScoped<SiteSettings>();
 builder.Services.AddScoped<ChatService>();
 builder.Services.AddHostedService<ChatCleanupService>();
+builder.Services.AddSingleton<PresenceTracker>();
 
 // Database: MySQL (Simply.com), SQL Server eller – hvis intet er sat op – en SQLite-fil i App_Data.
 var mySql = builder.Configuration.GetConnectionString("MySql");
@@ -242,6 +243,13 @@ app.UseMiddleware<DenmarkOnlyMiddleware>();
 
 app.UseRouting();
 app.UseAuthentication();
+// Hvem er online: hver forespørgsel fra en fuldt logget ind bruger (med to-faktor) opdaterer "sidst set".
+app.Use((ctx, next) =>
+{
+    if (ctx.User.HasClaim("amr", "mfa") && ctx.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value is { } userId)
+        ctx.RequestServices.GetRequiredService<PresenceTracker>().Touch(userId, ctx.User.Identity?.Name ?? "");
+    return next(ctx);
+});
 app.UseRateLimiter();   // efter login, så chat-grænsen gælder pr. bruger
 app.UseAuthorization();
 
