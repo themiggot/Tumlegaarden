@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -38,13 +37,11 @@ builder.Services.AddSingleton<PresenceTracker>();
 builder.Services.AddSingleton(GameModes.Load(Path.Combine(builder.Environment.ContentRootPath, "GameData")));
 builder.Services.AddSingleton(MiniGames.Load(Path.Combine(builder.Environment.ContentRootPath, "GameData")));
 
-// Database: MySQL (Simply.com), SQL Server eller – hvis intet er sat op – en SQLite-fil i App_Data.
+// Database: MySQL (Simply.com) eller – hvis den ikke er sat op – en SQLite-fil i datamappen.
 var mySql = builder.Configuration.GetConnectionString("MySql");
-var sqlServer = builder.Configuration.GetConnectionString("SqlServer");
 builder.Services.AddDbContext<AppDbContext>(o =>
 {
     if (!string.IsNullOrWhiteSpace(mySql)) o.UseMySQL(mySql);
-    else if (!string.IsNullOrWhiteSpace(sqlServer)) o.UseSqlServer(sqlServer);
     else o.UseSqlite($"Data Source={Path.Combine(appData, "tumlegaarden.db")}");
 });
 
@@ -261,3 +258,6 @@ app.UseAuthorization();
 app.MapRazorPages();
 
 app.Run();
+
+/// <summary>Gør Program synlig for integrationstests (WebApplicationFactory).</summary>
+public partial class Program;

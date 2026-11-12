@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -119,4 +118,7 @@ public sealed class WordGame
     }
 
     public static string DisplayDate(DateOnly date) => date.ToString("dddd d. MMMM", DanishTime.Culture);
+
+    /// <summary>Som <see cref="DisplayDate"/>, men med stort begyndelsesbogstav (til starten af en sætning).</summary>
+    public static string DisplayDateCapitalized(DateOnly date) => DanishTime.Culture.TextInfo.ToUpper(DisplayDate(date)[0]) + DisplayDate(date)[1..];
 }

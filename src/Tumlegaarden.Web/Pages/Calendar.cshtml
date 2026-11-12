@@ -92,7 +92,7 @@
                                 <div class="event-body">@ev.Body</div>
                             }
                             @{ var yes = ev.Responses.Where(r => r.Attending).OrderBy(r => r.UserEmail).ToList(); var no = ev.Responses.Where(r => !r.Attending).OrderBy(r => r.UserEmail).ToList(); var my = Model.MyAnswer(ev); }
-                            <form method="post" asp-page-handler="Respond" asp-route-id="@ev.Id" asp-route-m="@Model.MonthKey(Model.Month)" class="rsvp">
+                            <form method="post" asp-page-handler="Respond" asp-route-id="@ev.Id" class="rsvp">
                                 <button type="submit" name="attending" value="true" class="btn btn-small @(my == true ? "btn-on" : "")" aria-pressed="@(my == true ? "true" : "false")">Deltager</button>
                                 <button type="submit" name="attending" value="false" class="btn btn-small @(my == false ? "btn-on" : "")" aria-pressed="@(my == false ? "true" : "false")">Deltager ikke</button>
                             </form>

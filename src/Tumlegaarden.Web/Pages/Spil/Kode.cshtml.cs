@@ -17,8 +17,6 @@ public class KodeModel(AppDbContext db, UserManager<IdentityUser> userManager, M
     /// <summary>Sidste gæt, så formularen starter med det (nemt at ændre én farve).</summary>
     public int[] Preset { get; private set; } = [0, 0, 0, 0];
 
-    public static int PointsFor(int attempts) => CodeBreaker.Points(attempts, solved: true);
-
     public async Task OnGetAsync()
     {
         ReadError();

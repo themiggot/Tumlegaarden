@@ -7,7 +7,7 @@
     <h2 class="window-title">@Model.Mode.Name – dagens ord</h2>
     <div class="window-body game">
         <div class="game-head">
-            <p class="hint">@(char.ToUpper(WordGame.DisplayDate(Model.Today)[0]) + WordGame.DisplayDate(Model.Today)[1..]). Find ordet på @WordGame.WordLength bogstaver i højst @WordGame.MaxAttempts forsøg. Nyt ord hver dag ved midnat.</p>
+            <p class="hint">@WordGame.DisplayDateCapitalized(Model.Today). Find ordet på @WordGame.WordLength bogstaver i højst @WordGame.MaxAttempts forsøg. Nyt ord hver dag ved midnat.</p>
             @if (afterDark)
             {
                 <p class="adult-note"><strong>18+</strong> Kun bandeord, frække ord og natteliv. Ord, der hænger folk ud for hudfarve, religion eller seksualitet, er ikke med.</p>

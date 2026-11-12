@@ -8,6 +8,8 @@
          Gælder kun ved "dotnet publish", så tests og lokal kørsel bruger maskinens egen runtime. -->
     <RuntimeIdentifier Condition="'$(_IsPublishing)' == 'true' and '$(RuntimeIdentifier)' == ''">win-x86</RuntimeIdentifier>
     <SelfContained Condition="'$(_IsPublishing)' == 'true'">true</SelfContained>
+    <!-- Kun danske og engelske sprogfiler fra pakkerne (sparer mange filer i udgivelsen). -->
+    <SatelliteResourceLanguages>da;en</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,7 +25,6 @@
     <PackageReference Include="MailKit" Version="4.18.2" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.14" />
     <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.12" />
     <PackageReference Include="QRCoder" Version="1.8.1" />
     <PackageReference Include="SkiaSharp" Version="4.154.1" />

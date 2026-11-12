@@ -93,7 +93,10 @@ GitHub Actions stopper bygget, hvis filerne i `wwwroot/js` ikke passer til `Scri
 dotnet test tests/Tumlegaarden.Tests
 ```
 
-Tester landefilteret (danske og udenlandske adresser, undtagelser, manglende data), domænekontrollen af e-mails, rangreglerne for redigering af brugere, online-status, krypteringen af to-faktor-hemmeligheder (inkl. konvertering af gamle værdier), Ordjagt (vurdering af gæt med dobbeltbogstaver, point, ordlister og at dagens ord ikke gentages; After Dark-listen, separate nøgler, cookies og tabeller) og billedbehandlingen (alle 8 EXIF-orienteringer, fjernelse af metadata, formater og afvisning af ikke-billeder; testbillederne ligger i `tests/Tumlegaarden.Tests/Fixtures`). Kører også ved hvert byg på GitHub.
+176 tests i to lag, som også kører ved hvert byg på GitHub:
+
+- **Enhedstests** af logikken: landefilteret, domænekontrollen af e-mails, rangreglerne, online-status, krypteringen af to-faktor-hemmeligheder (inkl. konvertering af gamle værdier), Ordjagt og After Dark (gæt med dobbeltbogstaver, point, ordlister, ingen gentagelser, separate nøgler og tabeller), de små spil (gåde, kode, kort, anagram), quiz-point, sletning af logs og anonymisering af slettede brugere, databaseopgradering (manglende tabeller og kolonner oprettes) og billedbehandlingen (alle 8 EXIF-orienteringer, metadata, formater; testbilleder i `tests/Tumlegaarden.Tests/Fixtures`).
+- **Integrationstests** (`tests/Tumlegaarden.Tests/Integration`): hele sitet startes i hukommelsen med en SQLite-database. Login sker med en testheader i stedet for adgangskode og to-faktor; alt andet – roller, antiforgery, sider og database – kører som i produktion. Tjekker at alle sider vises og kræver login, rollerne (fx kun diktator/admin på Indstillinger), sikkerhedsheaderne, alle spil fra gæt til point (inkl. at snyd og ugyldige gæt afvises), hele quiz-forløbet (lav, ret, rettigheder, vært, tilskuer, point, sletning), kalendersvar og sletning af brugere.
 
 ## Tredjepartskomponenter
 
@@ -118,7 +121,7 @@ Database-fil, krypteringsnøgler og `appsettings.Production.json` ligger i datam
 `tumlegaarden-data` ved siden af appens mappe, hvis den findes, ellers `App_Data/` i appen. Den valgte mappe skrives i loggen ved opstart.
 
 ### Database
-Sitet vælger database ud fra `ConnectionStrings` i denne rækkefølge: `MySql` (bruges hos Simply.com), `SqlServer`, og ellers en SQLite-fil i `App_Data/`.
+Sitet bruger MySQL, når `ConnectionStrings:MySql` er sat (det gør det hos Simply.com), og ellers en SQLite-fil i datamappen (praktisk til udvikling og tests).
 MySQL-driveren er Oracles `MySql.EntityFrameworkCore`, fordi Pomelo endnu ikke understøtter .NET 10. Testet mod MySQL 8.0.
 Får I en SSL-fejl ved forbindelsen, så skift `SslMode=Required` til `SslMode=Preferred`.
 

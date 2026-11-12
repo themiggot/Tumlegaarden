@@ -29,7 +29,7 @@ public abstract class PracticeGameModel(SiteSettings settings, IDataProtectionPr
     : PageModel, IPracticeView
 {
     public abstract GameMode Mode { get; }
-    private WordGame game => Mode.Words;
+    private WordGame Game => Mode.Words;
     private string CookieName => Mode.PracticeCookie;
 
     private sealed class State
@@ -53,12 +53,12 @@ public abstract class PracticeGameModel(SiteSettings settings, IDataProtectionPr
     public int Attempts { get; private set; }
     public int Played { get; private set; }
     public int Won { get; private set; }
-    public string? Error { get; private set; }
-    public BoardView Board => new(Rows, Keys, !Finished, Error);
+    public string? ErrorMessage { get; private set; }
+    public BoardView Board => new(Rows, Keys, !Finished, ErrorMessage);
 
     public async Task OnGetAsync()
     {
-        Error = TempData["GameError"] as string;
+        ErrorMessage = TempData["GameError"] as string;
         var state = Load() ?? await NewGameAsync(null);
         Show(state);
     }
@@ -68,9 +68,9 @@ public abstract class PracticeGameModel(SiteSettings settings, IDataProtectionPr
         var state = Load() ?? await NewGameAsync(null);
         var word = WordGame.Normalize(guess);
         if (state.F) return RedirectToPage();
-        if (word.Length != WordGame.WordLength) return Error_($"Ordet skal have {WordGame.WordLength} bogstaver.");
-        if (!game.IsValidGuess(word)) return Error_($"\"{word.ToUpperInvariant()}\" står ikke i ordlisten.");
-        if (state.G.Contains(word)) return Error_($"Du har allerede gættet \"{word.ToUpperInvariant()}\".");
+        if (word.Length != WordGame.WordLength) return Error($"Ordet skal have {WordGame.WordLength} bogstaver.");
+        if (!Game.IsValidGuess(word)) return Error($"\"{word.ToUpperInvariant()}\" står ikke i ordlisten.");
+        if (state.G.Contains(word)) return Error($"Du har allerede gættet \"{word.ToUpperInvariant()}\".");
 
         state.G.Add(word);
         state.S = word == state.W;
@@ -93,7 +93,7 @@ public abstract class PracticeGameModel(SiteSettings settings, IDataProtectionPr
         return RedirectToPage();
     }
 
-    private RedirectToPageResult Error_(string message)
+    private RedirectToPageResult Error(string message)
     {
         TempData["GameError"] = message;
         return RedirectToPage();
@@ -102,11 +102,11 @@ public abstract class PracticeGameModel(SiteSettings settings, IDataProtectionPr
     private async Task<State> NewGameAsync(State? previous)
     {
         var today = DanishTime.Today(time);
-        var daily = game.WordFor(today, await settings.GetOrCreateGameSecretAsync(Mode.SecretKey));
+        var daily = Game.WordFor(today, await settings.GetOrCreateGameSecretAsync(Mode.SecretKey));
         var state = new State
         {
             U = userManager.GetUserId(User) ?? "",
-            W = game.RandomWord(daily, previous?.W),
+            W = Game.RandomWord(daily, previous?.W),
             Played = previous?.Played ?? 0,
             Won = previous?.Won ?? 0
         };
@@ -120,7 +120,7 @@ public abstract class PracticeGameModel(SiteSettings settings, IDataProtectionPr
         try
         {
             var state = JsonSerializer.Deserialize<State>(Protector.Unprotect(raw));
-            return state is not null && state.U == userManager.GetUserId(User) && game.IsValidGuess(state.W) ? state : null;
+            return state is not null && state.U == userManager.GetUserId(User) && Game.IsValidGuess(state.W) ? state : null;
         }
         catch (Exception ex) when (ex is System.Security.Cryptography.CryptographicException or JsonException or FormatException)
         {

@@ -50,7 +50,7 @@ public class CalendarModel(AppDbContext db, UserManager<IdentityUser> userManage
     public bool? MyAnswer(CalendarEvent ev) => ev.Responses.FirstOrDefault(r => r.UserId == UserId)?.Attending;
 
     /// <summary>Deltager / deltager ikke. Samme knap igen fjerner svaret.</summary>
-    public async Task<IActionResult> OnPostRespondAsync(int id, bool attending, string? m)
+    public async Task<IActionResult> OnPostRespondAsync(int id, bool attending)
     {
         var ev = await db.Events.FindAsync(id);
         if (ev is null) return NotFound();

@@ -42,7 +42,7 @@ public abstract class MiniGameModel(AppDbContext db, UserManager<IdentityUser> u
     public string? ErrorMessage { get; private set; }
     public MiniLeaderboard? Leaderboard { get; private set; }
 
-    public string TodayText => char.ToUpper(WordGame.DisplayDate(Today)[0]) + WordGame.DisplayDate(Today)[1..];
+    public string TodayText => WordGame.DisplayDateCapitalized(Today);
 
     /// <summary>Gør klar: dato, nøgle, bruger og dagens spil (til visning eller opdatering).</summary>
     protected async Task PrepareAsync(bool tracking)
