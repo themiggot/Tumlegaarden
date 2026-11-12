@@ -71,6 +71,18 @@ public sealed class PagesTests(TestApp app) : IClassFixture<TestApp>
         Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").Single());
     }
 
+    [Theory]
+    [InlineData("/Albums/Image/999/thumb", HttpStatusCode.NotFound)]      // findes ikke
+    [InlineData("/Albums/Image/999/THUMB", HttpStatusCode.NotFound)]      // versaler må ikke give 500
+    [InlineData("/Albums/Image/999/thumbnail", HttpStatusCode.NotFound)]  // ugyldig størrelse
+    [InlineData("/Albums/Image/999/large", HttpStatusCode.NotFound)]
+    public async Task ImageEndpoint_HandlesBadSizeWithoutServerError(string url, HttpStatusCode expected)
+    {
+        await EnsureUserAsync("billede-bruger", Roles.Borler);
+        var response = await app.ClientFor("billede-bruger").GetAsync(url);
+        Assert.Equal(expected, response.StatusCode);
+    }
+
     private async Task EnsureUserAsync(string name, string role)
     {
         if (app.Db(db => db.Users.Any(u => u.UserName == $"{name}@tumlegaarden.dk"))) return;

@@ -14,6 +14,10 @@ public class ImageModel(AppDbContext db, PhotoStore store) : PageModel
 {
     public async Task<IActionResult> OnGetAsync(int id, string size)
     {
+        // Rutens regex er versalufølsom ("THUMB" slipper igennem), så normalisér og afvis alt andet her.
+        size = size.ToLowerInvariant();
+        if (size is not ("thumb" or "large")) return NotFound();
+
         var photo = await db.Photos.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
         if (photo is null) return NotFound();
 
