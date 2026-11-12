@@ -25,7 +25,18 @@
         {
             <nav class="topnav" aria-label="Hovedmenu">
                 <a asp-page="/Index" class="nav-home" aria-current="@(Context.Request.Path == "/" ? "page" : null)">Start</a>
-                <a asp-page="/Game/Index" class="nav-game" aria-current="@(Context.Request.Path.StartsWithSegments("/Ordjagt") ? "page" : null)">Ordjagt</a>
+                @{
+                    var path = Context.Request.Path;
+                    var inOrdjagt = path.StartsWithSegments("/Ordjagt");
+                    var inAfterDark = path.StartsWithSegments("/AfterDark");
+                }
+                <details class="nav-menu">
+                    <summary class="nav-game@(inOrdjagt || inAfterDark ? " is-current" : "")">Spil</summary>
+                    <ul class="nav-menu-list">
+                        <li><a asp-page="/Game/Index" aria-current="@(inOrdjagt ? "page" : null)">Ordjagt <small>dagens ord</small></a></li>
+                        <li><a asp-page="/Game/AfterDark" class="nav-afterdark" aria-current="@(inAfterDark ? "page" : null)">Ordjagt After Dark <small>18+</small></a></li>
+                    </ul>
+                </details>
                 <a asp-page="/Calendar">Kalender</a>
                 <a asp-page="/Albums/Index">Albums</a>
                 <a asp-page="/Chat/Index">Chat</a>
@@ -48,7 +59,7 @@
         }
     </header>
 
-    <main class="stage">
+    <main class="stage@(ViewData["StageClass"] is string stageClass ? " " + stageClass : "")">
         @if (!string.IsNullOrEmpty(status))
         {
             <p class="msg msg-ok status" role="status">@status</p>

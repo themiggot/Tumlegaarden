@@ -84,19 +84,33 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .topnav > a.nav-home:hover { background: #f8df98; }
 .topnav > a.nav-home[aria-current="page"] { box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 #b8952f, inset calc(var(--b) * -1) calc(var(--b) * -1) 0 #fbe9b4; }
 /* "Ordjagt" glimter: en regnbue glider hen over knappen i pixeltrin, og en stjerne blinker. */
-.topnav > a.nav-game { position: relative; padding: 3px 12px 3px 24px; color: var(--ink); text-decoration: none;
+.topnav .nav-game { position: relative; padding: 3px 12px 3px 24px; color: var(--ink); text-decoration: none;
     background: linear-gradient(100deg, #8ff0dc 0%, #b79cff 18%, #ff9ed8 36%, #ffe27a 54%, #8ff0dc 72%, #b79cff 90%, #ff9ed8 100%);
     background-size: 400% 100%;
     animation: nav-shimmer 3.2s steps(16) infinite;
     box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 rgba(255,255,255,.55), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 rgba(0,0,0,.25); }
-.topnav > a.nav-game::before { content: "\2726"; position: absolute; left: 7px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #fff;
+.topnav .nav-game::before { content: "\2726"; position: absolute; left: 7px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #fff;
     text-shadow: 0 0 2px #fff; animation: nav-twinkle 1.6s steps(2) infinite; }
-.topnav > a.nav-game:hover { filter: brightness(1.08); }
-.topnav > a.nav-game[aria-current="page"] { box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 rgba(0,0,0,.25), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 rgba(255,255,255,.55); }
+.topnav .nav-game:hover { filter: brightness(1.08); }
+.topnav .nav-game.is-current { box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 rgba(0,0,0,.25), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 rgba(255,255,255,.55); }
+/* "Spil": dropdown, der virker uden JavaScript (<details>). forms.js lukker den ved klik udenfor og Esc. */
+.nav-menu { position: relative; }
+.topnav .nav-game { display: block; cursor: pointer; font-weight: 700; list-style: none; user-select: none; }
+.topnav .nav-game::-webkit-details-marker { display: none; }
+.topnav .nav-game::after { content: " \25BE"; }
+.nav-menu[open] > .nav-game::after { content: " \25B4"; }
+.nav-menu-list { position: absolute; z-index: 50; top: calc(100% + 6px); left: 0; min-width: 240px; margin: 0; padding: 4px; list-style: none;
+    background: var(--face); box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 var(--face-hi), inset calc(var(--b) * -1) calc(var(--b) * -1) 0 var(--face-lo), 4px 4px 0 rgba(0,0,0,.35); }
+.nav-menu-list a { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 6px 10px; color: var(--ink); font-weight: 700; text-decoration: none; }
+.nav-menu-list a small { color: var(--muted); font-weight: 400; font-size: 13px; }
+.nav-menu-list a:hover, .nav-menu-list a:focus-visible { background: var(--title); color: var(--face-hi); }
+.nav-menu-list a:hover small, .nav-menu-list a:focus-visible small { color: inherit; }
+.nav-menu-list a[aria-current="page"] { background: var(--gold); color: var(--ink); }
+.nav-menu-list a.nav-afterdark small { color: #ff4fa3; }
 @keyframes nav-shimmer { from { background-position: 0% 0; } to { background-position: 100% 0; } }
 @keyframes nav-twinkle { 0% { opacity: 1; } 50% { opacity: .25; } 100% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-    .topnav > a.nav-game, .topnav > a.nav-game::before { animation: none; }
+    .topnav .nav-game, .topnav .nav-game::before { animation: none; }
 }
 
 /* Hvem er online */
@@ -583,3 +597,29 @@ code { font-family: ui-monospace, "Courier New", monospace; font-size: 15px; }
     .window-body { padding: 14px 12px 18px; }
     .codes { grid-template-columns: 1fr; }
 }
+
+/* Ordjagt After Dark: samme vinduer, mørkt neon-tema via farvevariablerne */
+.stage.theme-afterdark {
+    --face: #2a1f38;
+    --face-hi: #f4e9ff;
+    --face-lo: #120b1c;
+    --field: #1a1124;
+    --ink: #f4e9ff;
+    --muted: #c7b2dd;
+    --title: #8a1f5e;
+    --title-stripe: #a32a72;
+    --link: #ff8fd0;
+    --gold: #ff4fa3;
+    --ok: #2f9e6e;
+}
+.stage.theme-afterdark { color: var(--ink); }
+.stage.theme-afterdark th { background: #3a2c4d; }
+.stage.theme-afterdark th, .stage.theme-afterdark td { border-bottom-color: #4a3863; }
+.stage.theme-afterdark .leaderboard tr.is-me td { background: #4a1a3d; }
+.stage.theme-afterdark .window { box-shadow: 0 0 0 var(--b) var(--edge), inset var(--b) var(--b) 0 #4a3863, inset calc(var(--b) * -1) calc(var(--b) * -1) 0 var(--face-lo), 0 0 18px rgba(255,79,163,.35); }
+.stage.theme-afterdark .window-title { text-shadow: 0 0 6px #ff4fa3; }
+.stage.theme-afterdark .tile:not([class*="t-"]) { background: var(--field); }
+.stage.theme-afterdark .kb-key:not([class*="t-"]) { background: #3a2c4d; color: var(--ink); }
+.stage.theme-afterdark .game-help { background: #1f1630; box-shadow: inset 0 0 0 1px #4a3863; }
+.adult-note { flex-basis: 100%; margin: 0 !important; padding: 6px 10px; font-size: 14px; color: var(--ink); background: #3b1230; box-shadow: inset 0 0 0 1px #ff4fa3; }
+.adult-note strong { display: inline-block; margin-right: 6px; padding: 0 6px; color: #1a1124; background: #ff4fa3; }

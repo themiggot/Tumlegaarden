@@ -33,7 +33,7 @@ builder.Services.AddScoped<SiteSettings>();
 builder.Services.AddScoped<ChatService>();
 builder.Services.AddHostedService<ChatCleanupService>();
 builder.Services.AddSingleton<PresenceTracker>();
-builder.Services.AddSingleton(WordGame.Load(Path.Combine(builder.Environment.ContentRootPath, "GameData")));
+builder.Services.AddSingleton(GameModes.Load(Path.Combine(builder.Environment.ContentRootPath, "GameData")));
 
 // Database: MySQL (Simply.com), SQL Server eller – hvis intet er sat op – en SQLite-fil i App_Data.
 var mySql = builder.Configuration.GetConnectionString("MySql");

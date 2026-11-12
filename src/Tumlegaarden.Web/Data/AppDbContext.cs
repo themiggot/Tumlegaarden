@@ -17,6 +17,19 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ChatRoomMember> ChatRoomMembers => Set<ChatRoomMember>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<GameRound> GameRounds => Set<GameRound>();
+    public DbSet<AfterDarkRound> AfterDarkRounds => Set<AfterDarkRound>();
+
+    private static void ConfigureRounds<T>(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<T> e, string table) where T : GameRoundBase
+    {
+        e.ToTable(table);
+        e.HasIndex(x => new { x.UserId, x.Date }).IsUnique();   // ét spil pr. bruger pr. dag
+        e.HasIndex(x => x.Date);
+        e.Property(x => x.UserId).HasMaxLength(255);
+        e.Property(x => x.UserEmail).HasMaxLength(256);
+        e.Property(x => x.Guesses).HasMaxLength(64).IsRequired();
+        e.Property(x => x.Answer).HasMaxLength(16);
+        e.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -110,17 +123,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             e.HasOne<ChatRoom>().WithMany().HasForeignKey(x => x.RoomId).OnDelete(DeleteBehavior.Cascade);
         });
 
-        builder.Entity<GameRound>(e =>
-        {
-            e.ToTable("GameRounds");
-            e.HasIndex(x => new { x.UserId, x.Date }).IsUnique();   // ét spil pr. bruger pr. dag
-            e.HasIndex(x => x.Date);
-            e.Property(x => x.UserId).HasMaxLength(255);
-            e.Property(x => x.UserEmail).HasMaxLength(256);
-            e.Property(x => x.Guesses).HasMaxLength(64).IsRequired();
-            e.Property(x => x.Answer).HasMaxLength(16);
-            e.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
-        });
+        builder.Entity<GameRound>(e => ConfigureRounds(e, "GameRounds"));
+        builder.Entity<AfterDarkRound>(e => ConfigureRounds(e, "AfterDarkRounds"));
 
         builder.Entity<Invitation>(e =>
         {

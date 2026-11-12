@@ -1,7 +1,7 @@
 namespace Tumlegaarden.Web.Data;
 
-/// <summary>En brugers spil i Ordjagt for én dag. Oprettes ved første gæt.</summary>
-public sealed class GameRound
+/// <summary>Fælles felter for en brugers spil på én dag. Hver spiltype har sin egen tabel.</summary>
+public abstract class GameRoundBase
 {
     public int Id { get; set; }
     public required string UserId { get; set; }
@@ -21,3 +21,9 @@ public sealed class GameRound
 
     public IReadOnlyList<string> GuessList => Guesses.Length == 0 ? [] : Guesses.Split(';');
 }
+
+/// <summary>En brugers spil i Ordjagt for én dag. Oprettes ved første gæt.</summary>
+public sealed class GameRound : GameRoundBase;
+
+/// <summary>En brugers spil i Ordjagt After Dark for én dag. Egen tabel, så highscoren er adskilt.</summary>
+public sealed class AfterDarkRound : GameRoundBase;

@@ -29,3 +29,27 @@ for (const input of Array.from(document.querySelectorAll<HTMLInputElement>("inpu
     source.addEventListener("change", sync);
     sync();
 }
+
+// Dropdown-menuer i topmenuen (<details class="nav-menu">) virker uden JavaScript;
+// her lukkes de desuden ved klik udenfor, ved Esc, og når en anden menu åbnes.
+const navMenus = Array.from(document.querySelectorAll<HTMLDetailsElement>("details.nav-menu"));
+if (navMenus.length > 0) {
+    document.addEventListener("click", (event) => {
+        for (const menu of navMenus) {
+            if (menu.open && !menu.contains(event.target as Node)) menu.open = false;
+        }
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        for (const menu of navMenus) {
+            if (!menu.open) continue;
+            menu.open = false;
+            menu.querySelector("summary")?.focus();
+        }
+    });
+    for (const menu of navMenus) {
+        menu.addEventListener("toggle", () => {
+            if (menu.open) for (const other of navMenus) if (other !== menu) other.open = false;
+        });
+    }
+}

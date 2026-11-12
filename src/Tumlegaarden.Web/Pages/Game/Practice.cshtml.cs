@@ -7,14 +7,30 @@ using Tumlegaarden.Web.Services;
 
 namespace Tumlegaarden.Web.Pages.Game;
 
+/// <summary>Det, visningen af øvespillet (_Practice) skal bruge.</summary>
+public interface IPracticeView
+{
+    GameMode Mode { get; }
+    BoardView Board { get; }
+    bool Finished { get; }
+    bool Solved { get; }
+    string? Answer { get; }
+    int Attempts { get; }
+    int Played { get; }
+    int Won { get; }
+}
+
 /// <summary>
-/// Øvespil i Ordjagt: ubegrænset antal spil med tilfældige ord, tæller ikke med i highscoren.
+/// Øvespil: ubegrænset antal spil med tilfældige ord, tæller ikke med i highscoren.
 /// Spillets tilstand ligger i en krypteret cookie (ingen database), så ordet hverken kan læses eller ændres.
 /// Dagens ord bruges aldrig som øveord.
 /// </summary>
-public class PracticeModel(WordGame game, SiteSettings settings, IDataProtectionProvider dataProtection, UserManager<IdentityUser> userManager, TimeProvider time) : PageModel
+public abstract class PracticeGameModel(SiteSettings settings, IDataProtectionProvider dataProtection, UserManager<IdentityUser> userManager, TimeProvider time)
+    : PageModel, IPracticeView
 {
-    public const string CookieName = "__Host-Tumle-Ordjagt-Oev";
+    public abstract GameMode Mode { get; }
+    private WordGame game => Mode.Words;
+    private string CookieName => Mode.PracticeCookie;
 
     private sealed class State
     {
@@ -27,7 +43,7 @@ public class PracticeModel(WordGame game, SiteSettings settings, IDataProtection
         public int Won { get; set; }
     }
 
-    private IDataProtector Protector => dataProtection.CreateProtector("Tumlegaarden.Ordjagt.Practice.v1");
+    private IDataProtector Protector => dataProtection.CreateProtector(Mode.ProtectorPurpose);
 
     public List<(string Word, LetterState[] States)> Rows { get; private set; } = [];
     public Dictionary<char, LetterState> Keys { get; private set; } = [];
@@ -86,7 +102,7 @@ public class PracticeModel(WordGame game, SiteSettings settings, IDataProtection
     private async Task<State> NewGameAsync(State? previous)
     {
         var today = DanishTime.Today(time);
-        var daily = game.WordFor(today, await settings.GetOrCreateGameSecretAsync());
+        var daily = game.WordFor(today, await settings.GetOrCreateGameSecretAsync(Mode.SecretKey));
         var state = new State
         {
             U = userManager.GetUserId(User) ?? "",
@@ -133,4 +149,18 @@ public class PracticeModel(WordGame game, SiteSettings settings, IDataProtection
         Played = state.Played;
         Won = state.Won;
     }
+}
+
+/// <summary>Øvespil i Ordjagt.</summary>
+public class PracticeModel(GameModes games, SiteSettings settings, IDataProtectionProvider dataProtection, UserManager<IdentityUser> userManager, TimeProvider time)
+    : PracticeGameModel(settings, dataProtection, userManager, time)
+{
+    public override GameMode Mode => games.Ordjagt;
+}
+
+/// <summary>Øvespil i Ordjagt After Dark.</summary>
+public class AfterDarkPracticeModel(GameModes games, SiteSettings settings, IDataProtectionProvider dataProtection, UserManager<IdentityUser> userManager, TimeProvider time)
+    : PracticeGameModel(settings, dataProtection, userManager, time)
+{
+    public override GameMode Mode => games.AfterDark;
 }

@@ -34,6 +34,9 @@ public sealed class WordGame
 
     public static WordGame Load(string directory) => new(ReadList(Path.Combine(directory, "ord-dagens.txt")), ReadList(Path.Combine(directory, "ord-gyldige.txt")));
 
+    /// <summary>After Dark: egne løsningsord; alle almindelige ord kan stadig bruges som gæt.</summary>
+    public static WordGame LoadAfterDark(string directory) => new(ReadList(Path.Combine(directory, "ord-afterdark.txt")), ReadList(Path.Combine(directory, "ord-gyldige.txt")));
+
     private static IEnumerable<string> ReadList(string path) =>
         File.ReadLines(path, Encoding.UTF8).Select(l => l.Trim()).Where(l => l.Length > 0 && l[0] != '#');
 

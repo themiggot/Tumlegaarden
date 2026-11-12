@@ -1,0 +1,8 @@
+@page "/AfterDark"
+@model Tumlegaarden.Web.Pages.Game.AfterDarkModel
+@{
+    ViewData["Title"] = Model.Mode.Name;
+    ViewData["StageClass"] = Model.Mode.Theme;
+}
+<partial name="_Daily" model="Model" />
+<script src="~/js/game.js" asp-append-version="true" defer></script>

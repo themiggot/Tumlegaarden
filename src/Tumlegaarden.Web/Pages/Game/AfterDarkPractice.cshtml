@@ -1,0 +1,8 @@
+@page "/AfterDark/Oev"
+@model Tumlegaarden.Web.Pages.Game.AfterDarkPracticeModel
+@{
+    ViewData["Title"] = Model.Mode.Name + " – øvespil";
+    ViewData["StageClass"] = Model.Mode.Theme;
+}
+<partial name="_Practice" model="Model" />
+<script src="~/js/game.js" asp-append-version="true" defer></script>

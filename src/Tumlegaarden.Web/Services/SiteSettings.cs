@@ -18,18 +18,22 @@ public sealed class SiteSettings(AppDbContext db, TimeProvider time)
     }
 
     public const string GameSecretKey = "Game.Secret";
+    public const string AfterDarkSecretKey = "Game.AfterDark.Secret";
 
     /// <summary>
     /// Hemmelig nøgle til Ordjagt (bestemmer ordenes rækkefølge). Laves første gang og gemmes i databasen,
     /// så dagens ord ikke kan regnes ud fra det offentlige repo.
     /// </summary>
-    public async Task<byte[]> GetOrCreateGameSecretAsync()
+    public Task<byte[]> GetOrCreateGameSecretAsync() => GetOrCreateGameSecretAsync(GameSecretKey);
+
+    /// <summary>Samme slags nøgle, men med eget navn pr. spiltype (fx After Dark).</summary>
+    public async Task<byte[]> GetOrCreateGameSecretAsync(string key)
     {
-        var setting = await db.Settings.FindAsync(GameSecretKey);
+        var setting = await db.Settings.FindAsync(key);
         if (setting is not null) return Convert.FromBase64String(setting.Value);
 
         var secret = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
-        db.Settings.Add(new SiteSetting { Key = GameSecretKey, Value = Convert.ToBase64String(secret), UpdatedUtc = time.GetUtcNow().UtcDateTime, UpdatedBy = "system" });
+        db.Settings.Add(new SiteSetting { Key = key, Value = Convert.ToBase64String(secret), UpdatedUtc = time.GetUtcNow().UtcDateTime, UpdatedBy = "system" });
         try
         {
             await db.SaveChangesAsync();
@@ -39,7 +43,7 @@ public sealed class SiteSettings(AppDbContext db, TimeProvider time)
         {
             // En anden forespørgsel nåede at oprette nøglen samtidig – brug dens.
             db.ChangeTracker.Clear();
-            return Convert.FromBase64String((await db.Settings.FindAsync(GameSecretKey))!.Value);
+            return Convert.FromBase64String((await db.Settings.FindAsync(key))!.Value);
         }
     }
 
