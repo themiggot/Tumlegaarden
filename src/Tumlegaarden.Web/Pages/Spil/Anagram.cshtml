@@ -1,0 +1,46 @@
+@page
+@model Tumlegaarden.Web.Pages.Spil.AnagramModel
+@using Tumlegaarden.Web.Services
+@{
+    ViewData["Title"] = "Anagram";
+}
+<section class="window" id="anagram">
+    <h2 class="window-title">Anagram</h2>
+    <div class="window-body game">
+        <p class="hint game-intro">@Model.TodayText. Find så mange danske ord som muligt på mindst @Anagram.MinLength bogstaver af dagens @Anagram.Letters bogstaver. Hvert bogstav må bruges én gang pr. ord (to gange, hvis det står der to gange). Mindst ét ord bruger alle @Anagram.Letters. Spillet er åbent til midnat.</p>
+
+        <div class="anagram-letters" aria-label="Dagens bogstaver: @string.Join(" ", Model.Letters.Select(char.ToUpperInvariant))">
+            @foreach (var c in Model.Letters) { <span class="tile" aria-hidden="true">@char.ToUpperInvariant(c)</span> }
+        </div>
+
+        <p class="anagram-score"><strong>@Model.Points point</strong> · @Model.Found.Count af @Model.Possible ord fundet</p>
+
+        @if (!Model.AllFound)
+        {
+            <form method="post" class="guess-form" autocomplete="off">
+                @if (Model.ErrorMessage is not null) { <p class="msg msg-err" role="alert">@Model.ErrorMessage</p> }
+                <label for="word">Skriv et ord</label>
+                <div class="guess-row">
+                    <input id="word" name="word" maxlength="@Anagram.Letters" minlength="@Anagram.MinLength" required autofocus autocapitalize="characters" spellcheck="false" pattern="[A-Za-zÆØÅæøå]{@Anagram.MinLength,@Anagram.Letters}" />
+                    <button type="submit" class="btn btn-primary">Tjek</button>
+                </div>
+            </form>
+        }
+        else
+        {
+            <p class="game-result is-won">Du har fundet alle @Model.Possible ord – <strong>@Model.Points point</strong>!</p>
+        }
+
+        @if (Model.Found.Count > 0)
+        {
+            <h3>Dine ord</h3>
+            @foreach (var group in Model.Found.GroupBy(w => w.Length))
+            {
+                <p class="anagram-group"><span class="anagram-len">@group.Key bogstaver:</span>
+                    @foreach (var w in group) { <span class="anagram-word@(w.Length == Anagram.Letters ? " is-key" : "")">@w.ToUpperInvariant()</span> }
+                </p>
+            }
+        }
+    </div>
+</section>
+<partial name="_MiniLeaderboard" model="Model.Leaderboard" />

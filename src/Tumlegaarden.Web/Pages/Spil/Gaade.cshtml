@@ -1,0 +1,48 @@
+@page
+@model Tumlegaarden.Web.Pages.Spil.GaadeModel
+@using Tumlegaarden.Web.Services
+@{
+    ViewData["Title"] = "Dagens gåde";
+}
+<section class="window" id="gaade">
+    <h2 class="window-title">Dagens gåde</h2>
+    <div class="window-body game">
+        <p class="hint game-intro">@Model.TodayText. Find det manglende ord i ordsproget eller talemåden. Du har @Riddle.MaxAttempts forsøg, og du får hjælp efter hvert forkert gæt. Ny gåde hver dag ved midnat.</p>
+
+        <blockquote class="riddle">
+            @Model.Riddle.Before<span class="riddle-blank">@(Model.Finished ? Model.Riddle.Answer : Model.Riddle.Hint(Model.Wrong))</span>@Model.Riddle.After
+        </blockquote>
+
+        @if (Model.Guesses.Count > 0)
+        {
+            <ol class="riddle-guesses" aria-label="Dine gæt">
+                @foreach (var g in Model.Guesses)
+                {
+                    var right = Model.Riddle.IsCorrect(g);
+                    <li class="@(right ? "is-right" : "is-wrong")">@g <span class="sr-only">@(right ? "rigtigt" : "forkert")</span></li>
+                }
+            </ol>
+        }
+
+        @if (Model.Finished)
+        {
+            <p class="game-result @(Model.Round!.Solved ? "is-won" : "is-lost")">
+                @if (Model.Round.Solved) { <text>Løst i @Model.Round.Attempts forsøg – <strong>@Model.Round.Score point</strong>.</text> }
+                else { <text>Ordet var <strong>@Model.Riddle.Answer</strong>. 0 point i dag.</text> }
+                Ny gåde i morgen.
+            </p>
+        }
+        else
+        {
+            <form method="post" class="guess-form" autocomplete="off">
+                @if (Model.ErrorMessage is not null) { <p class="msg msg-err" role="alert">@Model.ErrorMessage</p> }
+                <label for="guess">Gæt nr. @(Model.Guesses.Count + 1) af @Riddle.MaxAttempts (@Model.Riddle.Answer.Length bogstaver)</label>
+                <div class="guess-row">
+                    <input id="guess" name="guess" maxlength="30" required autofocus spellcheck="false" />
+                    <button type="submit" class="btn btn-primary">Gæt</button>
+                </div>
+            </form>
+        }
+    </div>
+</section>
+<partial name="_MiniLeaderboard" model="Model.Leaderboard" />

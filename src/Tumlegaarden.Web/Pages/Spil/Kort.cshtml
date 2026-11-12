@@ -1,0 +1,48 @@
+@page
+@model Tumlegaarden.Web.Pages.Spil.KortModel
+@using Tumlegaarden.Web.Services
+@{
+    ViewData["Title"] = "Højere eller lavere";
+}
+<section class="window" id="kort">
+    <h2 class="window-title">Højere eller lavere</h2>
+    <div class="window-body game">
+        <p class="hint game-intro">@Model.TodayText. Er næste kort højere eller lavere? Dagens bunke er blandet ens for alle, og du har ét forsøg. Ét forkert gæt, og det er slut. Es er højest, og samme værdi tæller som rigtigt.</p>
+
+        <div class="card-table">
+            <div class="playing-card big@(Model.Current.IsRed ? " is-red" : "")" role="img" aria-label="Kortet er @Model.Current.Name">
+                <span class="card-rank">@Model.Current.RankText</span><span class="card-suit">@Model.Current.SuitSymbol</span>
+            </div>
+            <p class="card-streak"><span class="num">@Model.Correct</span> rigtige i træk<br /><strong>@(Model.Correct * HigherLower.PointsPerCard) point</strong></p>
+        </div>
+
+        @if (Model.Finished)
+        {
+            <p class="game-result @(Model.Correct >= 10 ? "is-won" : "is-lost")">
+                @(Model.Results.Count > 0 && !Model.Results[^1] ? "Forkert gæt." : "Hele bunken er vendt!")
+                @Model.Correct rigtige i træk – <strong>@(Model.Correct * HigherLower.PointsPerCard) point</strong>. Ny bunke i morgen.
+            </p>
+        }
+        else
+        {
+            <form method="post" class="card-buttons">
+                @if (Model.ErrorMessage is not null) { <p class="msg msg-err" role="alert">@Model.ErrorMessage</p> }
+                <button type="submit" name="guess" value="h" class="btn btn-primary">▲ Højere</button>
+                <button type="submit" name="guess" value="l" class="btn btn-primary">▼ Lavere</button>
+            </form>
+        }
+
+        @if (Model.Shown.Count > 1)
+        {
+            <ol class="card-history" aria-label="Vendte kort">
+                @for (var i = 0; i < Model.Shown.Count; i++)
+                {
+                    var c = Model.Shown[i];
+                    var state = i == 0 ? "" : Model.Results[i - 1] ? " is-right" : " is-wrong";
+                    <li class="playing-card@(c.IsRed ? " is-red" : "")@state" aria-label="@c.Name@(i == 0 ? "" : Model.Results[i - 1] ? ", rigtigt" : ", forkert")"><span aria-hidden="true">@c.RankText@c.SuitSymbol</span></li>
+                }
+            </ol>
+        }
+    </div>
+</section>
+<partial name="_MiniLeaderboard" model="Model.Leaderboard" />

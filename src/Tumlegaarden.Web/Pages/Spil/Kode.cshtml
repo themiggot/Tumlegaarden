@@ -1,0 +1,61 @@
+@page
+@model Tumlegaarden.Web.Pages.Spil.KodeModel
+@using Tumlegaarden.Web.Services
+@{
+    ViewData["Title"] = "Kodeknækker";
+}
+<section class="window" id="kode">
+    <h2 class="window-title">Kodeknækker</h2>
+    <div class="window-body game">
+        <p class="hint game-intro">@Model.TodayText. Gæt dagens kode på @CodeBreaker.Length farver (samme farve kan gå igen) i højst @CodeBreaker.MaxAttempts forsøg. Efter hvert gæt får du at vide, hvor mange farver der står på <strong>rigtig plads</strong> (●), og hvor mange der er med, men står <strong>forkert</strong> (○).</p>
+
+        <ol class="code-rows" aria-label="Dine gæt">
+            @for (var i = 0; i < CodeBreaker.MaxAttempts; i++)
+            {
+                if (i < Model.Rows.Count)
+                {
+                    var (guess, exact, near) = Model.Rows[i];
+                    <li class="code-row" aria-label="@string.Join(", ", guess.Select(c => CodeBreaker.Colors[c])): @exact på rigtig plads, @near forkert plads">
+                        @foreach (var c in guess) { <span class="peg peg-@c" aria-hidden="true"></span> }
+                        <span class="code-feedback" aria-hidden="true">@(new string('●', exact))@(new string('○', near))@(exact + near == 0 ? "–" : "")</span>
+                    </li>
+                }
+                else if (!Model.Finished)
+                {
+                    <li class="code-row is-empty" aria-hidden="true">@for (var p = 0; p < CodeBreaker.Length; p++) { <span class="peg"></span> }</li>
+                }
+            }
+        </ol>
+
+        @if (Model.Finished)
+        {
+            <div class="game-result @(Model.Round!.Solved ? "is-won" : "is-lost")">
+                @if (Model.Round.Solved) { <text>Knækket i @Model.Round.Attempts forsøg – <strong>@Model.Round.Score point</strong>.</text> }
+                else { <text>Koden var</text> }
+                <span class="code-answer">@foreach (var c in Model.Answer!) { <span class="peg peg-@c" title="@CodeBreaker.Colors[c]"></span> }</span>
+                <span class="sr-only">@string.Join(", ", Model.Answer!.Select(c => CodeBreaker.Colors[c]))</span>
+            </div>
+        }
+        else
+        {
+            <form method="post" class="code-form">
+                @if (Model.ErrorMessage is not null) { <p class="msg msg-err" role="alert">@Model.ErrorMessage</p> }
+                @for (var p = 0; p < CodeBreaker.Length; p++)
+                {
+                    <div class="code-slot" role="radiogroup" aria-label="Plads @(p + 1)">
+                        <span class="code-slot-label" aria-hidden="true">Plads @(p + 1)</span>
+                        @for (var c = 0; c < CodeBreaker.Colors.Length; c++)
+                        {
+                            <label class="swatch">
+                                <input type="radio" name="g@(p)" value="@c" checked="@(Model.Preset[p] == c)" required />
+                                <span class="peg peg-@c" aria-hidden="true"></span><span class="sr-only">@CodeBreaker.Colors[c]</span>
+                            </label>
+                        }
+                    </div>
+                }
+                <button type="submit" class="btn btn-primary">Gæt (@(Model.Rows.Count + 1) af @CodeBreaker.MaxAttempts)</button>
+            </form>
+        }
+    </div>
+</section>
+<partial name="_MiniLeaderboard" model="Model.Leaderboard" />

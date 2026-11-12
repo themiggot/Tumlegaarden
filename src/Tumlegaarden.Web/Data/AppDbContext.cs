@@ -18,6 +18,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<GameRound> GameRounds => Set<GameRound>();
     public DbSet<AfterDarkRound> AfterDarkRounds => Set<AfterDarkRound>();
+    public DbSet<GameResult> GameResults => Set<GameResult>();
 
     private static void ConfigureRounds<T>(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<T> e, string table) where T : GameRoundBase
     {
@@ -125,6 +126,17 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
 
         builder.Entity<GameRound>(e => ConfigureRounds(e, "GameRounds"));
         builder.Entity<AfterDarkRound>(e => ConfigureRounds(e, "AfterDarkRounds"));
+        builder.Entity<GameResult>(e =>
+        {
+            e.ToTable("GameResults");
+            e.HasIndex(x => new { x.Game, x.UserId, x.Date }).IsUnique();   // ét spil pr. bruger pr. dag pr. spiltype
+            e.HasIndex(x => new { x.Game, x.Date });
+            e.Property(x => x.Game).HasMaxLength(16).IsRequired();
+            e.Property(x => x.UserId).HasMaxLength(255);
+            e.Property(x => x.UserEmail).HasMaxLength(256);
+            e.Property(x => x.State).HasMaxLength(4000).IsRequired();
+            e.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
 
         builder.Entity<Invitation>(e =>
         {
