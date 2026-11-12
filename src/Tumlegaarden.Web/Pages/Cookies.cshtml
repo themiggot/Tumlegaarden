@@ -6,7 +6,7 @@
 <section class="window window-wide">
     <h2 class="window-title">Cookies og privatliv</h2>
     <div class="window-body prose">
-        <p>Tumlegaarden bruger kun cookies, der er <strong>nødvendige</strong> for at du kan logge sikkert ind. Vi bruger ingen cookies til statistik, markedsføring eller sporing, og vi deler ingen data med tredjeparter.</p>
+        <p>Tumlegaarden bruger kun cookies, der er <strong>nødvendige</strong> for at du kan logge sikkert ind. Vi bruger ingen cookies til statistik, markedsføring eller sporing, ingen tredjepartscookies, og vi sælger eller deler ikke dine data til andre formål. Hvem der behandler data for os, står under <a href="#databehandlere">Databehandlere</a>.</p>
         <p>Nødvendige cookies kræver ikke samtykke efter cookiebekendtgørelsen, men du har ret til at vide, hvad de gør:</p>
         <div class="table-wrap">
             <table>
@@ -24,8 +24,14 @@
                 </tbody>
             </table>
         </div>
+        <h3 id="dataansvarlig">Dataansvarlig</h3>
+        <p>Dataansvarlig for Tumlegaarden er administratoren af sitet. Kontakt: <a href="mailto:admin@tumlegaarden.dk">admin@tumlegaarden.dk</a>. Skriv hertil, hvis du har spørgsmål til, hvordan dine data behandles, eller vil bruge dine rettigheder.</p>
+
+        <h3 id="formaal">Formål og retsgrundlag</h3>
+        <p>Data behandles for at drive et lukket, sikkert fællesskab for de inviterede: login, kalender, albums, chat og spil, samt for at beskytte sitet mod misbrug (landefilter, begrænsning af loginforsøg og log). Retsgrundlaget er vores legitime interesse i at kunne tilbyde og sikre tjenesten, som du er inviteret til (databeskyttelsesforordningens art. 6, stk. 1, litra f). Vi bruger ikke data til markedsføring, profilering eller automatiske afgørelser.</p>
+
         <h3>Persondata</h3>
-        <p>Vi gemmer din e-mailadresse, dit brugerniveau, en hash af din adgangskode, nøglen til din to-faktor-app (krypteret) og dine gendannelseskoder (som hash, så de ikke kan læses). Data bruges kun til at give dig adgang til sitet og slettes, når en administrator sletter din konto. Når du vælger adgangskode, sendes de første 5 tegn af en SHA-1-hash af den til Have I Been Pwned for at tjekke for datalæk. Selve adgangskoden forlader aldrig serveren.</p>
+        <p>Vi gemmer din e-mailadresse, dit brugerniveau, en hash af din adgangskode, nøglen til din to-faktor-app (krypteret) og dine gendannelseskoder (som hash, så de ikke kan læses). Data bruges kun til at give dig adgang til sitet. Når du vælger adgangskode, sendes de første 5 tegn af en SHA-1-hash af den til Have I Been Pwned for at tjekke for datalæk. Det er ikke en personoplysning, og selve adgangskoden forlader aldrig serveren.</p>
         <p>Begivenheder i kalenderen gemmes med navn, dato, tidspunkt, tekst og e-mailadressen på den, der oprettede dem. Dit svar (deltager eller deltager ikke) gemmes og kan ses af alle brugere.</p>
         <p>Chatbeskeder gemmes med tekst, tidspunkt og afsenderens e-mailadresse og kan ses af alle med adgang til rummet. Diktatorer og administratorer kan se alle rum. Beskeder slettes automatisk efter 24 timer, og slettes et rum, slettes dets beskeder også.</p>
         <p>Billeder i albums gemmes uden for den offentlige del af webhotellet og kan kun ses af brugere, der er logget ind. Ved upload fjernes GPS-position, kameraoplysninger og andre metadata, og billedet gemmes i højst 2048 pixel. Vi gemmer filnavnet og e-mailadressen på den, der uploadede billedet. Slettes et billede eller et album, slettes filerne også.</p>
@@ -33,6 +39,36 @@
         <p>Når du spiller Ordjagt eller Ordjagt After Dark, gemmes dine gæt, antal forsøg og point for dagen. Alle brugere kan se highscore-listen med point, antal korrekte og forkerte spil og dagens antal forsøg – men ikke dine gæt.</p>
         <h3>Kun adgang fra Danmark</h3>
         <p>Din IP-adresse sammenlignes med en liste over danske IP-adresser, og siden kan kun bruges fra Danmark. Afviste forsøg logges med IP-adresse og tidspunkt. Listen bygger på data fra <a href="https://www.nro.net/" rel="noopener">Number Resource Organization</a> (CC BY 4.0) via ip-location-db.</p>
+        <h3 id="databehandlere">Databehandlere og modtagere</h3>
+        <ul>
+            <li><strong>Simply.com</strong> (Danmark) driver webhotellet, databasen og e-mailserveren, der sender invitationer og nulstilling af adgangskode. Simply behandler data på vores vegne efter deres databehandleraftale, og data ligger i EU.</li>
+            <li><strong>Have I Been Pwned</strong> modtager kun de første 5 tegn af en hash af en ny adgangskode (se ovenfor), ikke personoplysninger.</li>
+            <li>Listen over danske IP-adresser ligger på serveren, så din IP-adresse sendes ikke videre.</li>
+        </ul>
+        <p>Data overføres ikke til lande uden for EU.</p>
+
+        <h3 id="opbevaring">Hvor længe gemmes data</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Data</th><th>Slettes</th></tr></thead>
+                <tbody>
+                    <tr><td>Konto (e-mail, brugerniveau, adgangskode-hash, to-faktor)</td><td>Når en administrator eller diktator sletter kontoen.</td></tr>
+                    <tr><td>Svar på begivenheder, spil i Ordjagt og chatmedlemskaber</td><td>Sammen med kontoen.</td></tr>
+                    <tr><td>Begivenheder, albums, billeder og chatrum, du har oprettet</td><td>Når de slettes. Slettes din konto, bliver indholdet stående for de andre, men din e-mailadresse fjernes og erstattes af "slettet bruger".</td></tr>
+                    <tr><td>Chatbeskeder</td><td>Efter 24 timer.</td></tr>
+                    <tr><td>Invitationer</td><td>Brugte, tilbagetrukne og udløbne invitationer til adresser uden konto slettes.</td></tr>
+                    <tr><td>Serverlog (IP-adresser på afviste forsøg, login og fejl, e-mailadresser)</td><td>Automatisk efter 30 dage.</td></tr>
+                    <tr><td>Online-status</td><td>Gemmes kun i hukommelsen og forsvinder ved genstart.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 id="rettigheder">Dine rettigheder</h3>
+        <p>Du har ret til at få <strong>indsigt</strong> i de data, vi har om dig, og få dem udleveret (dataportabilitet), til at få forkerte data <strong>rettet</strong>, til at få dine data <strong>slettet</strong>, til at få behandlingen <strong>begrænset</strong> og til at gøre <strong>indsigelse</strong> mod behandlingen. Skriv til <a href="mailto:admin@tumlegaarden.dk">admin@tumlegaarden.dk</a>. Du får svar senest en måned efter, vi har modtaget din henvendelse.</p>
+        <p>Du kan klage til <a href="https://www.datatilsynet.dk/" rel="noopener">Datatilsynet</a>, Carl Jacobsens Vej 35, 2500 Valby, hvis du er utilfreds med, hvordan dine data behandles.</p>
+        <p>Sker der et brud på sikkerheden, der kan skade dig, anmelder vi det til Datatilsynet inden for 72 timer og giver dig besked.</p>
+
+        <h3>Sletning af cookies</h3>
         <p>Du kan altid slette cookies i din browser. Så bliver du logget ud, og meddelelsen vises igen.</p>
     </div>
 </section>

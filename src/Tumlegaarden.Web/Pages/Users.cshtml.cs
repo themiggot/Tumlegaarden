@@ -21,6 +21,8 @@ public class UsersModel(
     IAppEmailSender emailSender,
     IOptions<SecurityOptions> options,
     PresenceTracker presence,
+    AppDbContext db,
+    TimeProvider time,
     ILogger<UsersModel> logger) : PageModel
 {
     // DateTimeOffset.MaxValue kan ikke gemmes i MySQL's datetime – år 9000 virker i alle databaser.
@@ -148,8 +150,10 @@ public class UsersModel(
     {
         if (await ManageableAsync(id) is not { } user) return Forbid();
         if (!confirm) return Done("Sæt flueben i Bekræft for at slette.");
-        await userManager.DeleteAsync(user);
+        var result = await userManager.DeleteAsync(user);
+        if (!result.Succeeded) return Done($"{user.Email} kunne ikke slettes.");
         presence.Forget(user.Id);
+        await UserDataEraser.AnonymizeDeletedUsersAsync(db, time.GetUtcNow().UtcDateTime);
         logger.LogInformation("{Actor} slettede {UserId}.", User.Identity?.Name, user.Id);
         return Done($"{user.Email} er slettet.");
     }

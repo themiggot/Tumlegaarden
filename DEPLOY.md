@@ -185,7 +185,7 @@ Sitet kan kun bruges fra danske IP-adresser. Det gælder alle sider, også for b
 ## 9. Fejlsøgning
 
 **Loggen er altid slået til.** Den ligger i `/tumlegaarden-logs` ved siden af `public_html`, med én fil pr. opstart (`stdout_ÅÅÅÅMMDDTTMMSS_….log`). Den nyeste fil er den interessante.
-Se også **Website → Webserver logs**. Slet gamle filer i `/tumlegaarden-logs` en gang imellem.
+Se også **Website → Webserver logs**. Logfiler ældre end 30 dage slettes automatisk (GDPR), ved opstart og hver 6. time. Antal dage kan ændres med indstillingen `Logs:RetentionDays`, og mappen med `Logs:Directory`.
 
 De første linjer i loggen viser:
 - `Datamappe: …`: mappen, sitet læser hemmeligheder fra.

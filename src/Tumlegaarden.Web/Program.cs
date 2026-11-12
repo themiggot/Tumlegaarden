@@ -32,6 +32,8 @@ builder.Services.AddSingleton<PhotoStore>();
 builder.Services.AddScoped<SiteSettings>();
 builder.Services.AddScoped<ChatService>();
 builder.Services.AddHostedService<ChatCleanupService>();
+builder.Services.AddSingleton(LogRetention.FromConfiguration(builder.Configuration, builder.Environment));
+builder.Services.AddHostedService<LogCleanupService>();
 builder.Services.AddSingleton<PresenceTracker>();
 builder.Services.AddSingleton(GameModes.Load(Path.Combine(builder.Environment.ContentRootPath, "GameData")));
 

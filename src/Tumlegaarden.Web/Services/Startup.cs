@@ -23,6 +23,8 @@ public static class StartupTasks
         await SchemaUpdater.AddMissingColumnsAsync(db, log);
         await TwoFactorSecretMigrator.MigrateAsync(db, sp.GetRequiredService<Microsoft.AspNetCore.DataProtection.IDataProtectionProvider>(), log);
         await sp.GetRequiredService<ChatService>().EnsureGlobalRoomAsync();
+        var anonymized = await UserDataEraser.AnonymizeDeletedUsersAsync(db, DateTime.UtcNow);
+        if (anonymized > 0) log.LogInformation("Fjernede e-mailadresser fra {Count} rækker tilhørende slettede brugere.", anonymized);
 
         var roleManager = sp.GetRequiredService<RoleManager<IdentityRole>>();
         foreach (var role in Roles.All)

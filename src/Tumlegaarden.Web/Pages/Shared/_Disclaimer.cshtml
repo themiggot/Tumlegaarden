@@ -6,7 +6,7 @@
         <div class="window-body" id="disclaimer-text">
             <p><strong>Tumlegaarden er en privat side uden kommercielle interesser.</strong></p>
             <p>Siden er kun for inviterede brugere. Har du ikke fået en invitation, skal du forlade siden.</p>
-            <p class="hint">Siden bruger kun nødvendige cookies til login og sikkerhed. Ingen statistik, ingen markedsføring, ingen tredjeparter. <a asp-page="/Cookies">Læs mere om cookies og privatliv</a></p>
+            <p class="hint">Siden bruger kun nødvendige cookies til login og sikkerhed. Ingen statistik, ingen markedsføring, ingen tredjepartscookies. <a asp-page="/Cookies">Læs mere om cookies og privatliv</a></p>
             <form method="post" asp-page="/Cookies" asp-page-handler="Disclaimer">
                 <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
                 <div class="actions"><button type="submit" class="btn btn-primary" autofocus>OK, forstået</button></div>
