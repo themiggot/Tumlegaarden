@@ -75,6 +75,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .logo { margin: 0; font-family: var(--font-logo); font-weight: 400; font-size: clamp(26px, 6vw, 44px); line-height: 1; }
 .logo a { color: var(--face-hi); text-decoration: none; text-shadow: 3px 3px 0 var(--edge); }
 
+/* Log ud står for sig selv i øverste højre hjørne; menuen får sin egen linje nedenunder. */
+.topbar > .logout { margin: 0 0 0 auto; align-self: flex-start; }
+.topbar > .topnav { flex-basis: 100%; }
 .topnav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
 .topnav form { margin: 0; }
 .topnav > a { color: var(--face-hi); font-weight: 700; }
