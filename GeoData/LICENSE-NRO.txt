@@ -1,0 +1,6 @@
+dk-ip-ranges.csv er udtrukket fra ip-location-db (https://github.com/sapics/ip-location-db),
+databasen "geo-whois-asn-country", som bygger på WHOIS-data fra de fem regionale internetregistre.
+
+The statistics data provided by NRO is licensed under a Creative Commons Attribution 4.0 International License.
+Copyright Holder: Number Resource Organization (NRO) – https://www.nro.net/
+License: https://creativecommons.org/licenses/by/4.0/

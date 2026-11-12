@@ -1,0 +1,4 @@
+Tumlegaarden
+Commit:  5feeac4fd19b571c1321cbb54c9f2db9f713ed89
+Runtime: win-x86
+Bygget:  2026-11-12T20:44:58Z
