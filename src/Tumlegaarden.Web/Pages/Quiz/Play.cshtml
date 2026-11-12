@@ -1,0 +1,112 @@
+@page "/Quiz/Spil/{id:int}"
+@model Tumlegaarden.Web.Pages.Quiz.PlayModel
+@{
+    ViewData["Title"] = Model.Quiz.Title;
+    ViewData["HideChatWidget"] = true;
+    ViewData["StageClass"] = "quiz-stage";
+    var best = Model.Standings.Count > 0 ? Model.Standings.Max(s => s.Score) : 0;
+}
+<section class="quiz-board-wrap" aria-labelledby="quiz-title">
+    <div class="quiz-top">
+        <h2 id="quiz-title" class="quiz-title">@Model.Quiz.Title</h2>
+        <p class="hint">Vært: @Model.Game.HostEmail.Split('@')[0]@(Model.IsHost ? "" : " · du ser med")</p>
+    </div>
+
+    <ol class="quiz-scores" aria-label="Stilling">
+        @for (var t = 0; t < Model.Standings.Count; t++)
+        {
+            var (team, score) = Model.Standings[t];
+            <li class="quiz-score@(Model.Game.Finished && score == best ? " is-winner" : "")">
+                <span class="quiz-team">@team</span>
+                <span class="quiz-points num">@score</span>
+                @if (Model.IsHost && !Model.Game.Finished && Model.Open is null)
+                {
+                    <form method="post" asp-page-handler="Adjust" asp-route-id="@Model.Game.Id" class="quiz-adjust">
+                        <input type="hidden" name="team" value="@t" />
+                        <button type="submit" name="up" value="false" class="btn btn-small" aria-label="Træk @Model.Points.Min() point fra @team">−</button>
+                        <button type="submit" name="up" value="true" class="btn btn-small" aria-label="Giv @team @Model.Points.Min() point">+</button>
+                    </form>
+                }
+            </li>
+        }
+    </ol>
+
+    @if (Model.Open is { } q)
+    {
+        var points = Model.Points[q.Row];
+        <div class="quiz-reveal@(Model.ShowAnswer ? "" : " is-flipping")" role="dialog" aria-labelledby="quiz-q">
+            <p class="quiz-reveal-head">@Model.CategoryName(q.Column) · @points point</p>
+            <p id="quiz-q" class="quiz-question">@q.Question</p>
+            @if (Model.ShowAnswer)
+            {
+                <p class="quiz-answer"><span class="hint">Svar:</span> @q.Answer</p>
+            }
+            else
+            {
+                <a class="btn" asp-route-id="@Model.Game.Id" asp-route-c="@q.Column" asp-route-r="@q.Row" asp-route-svar="true">Vis svar</a>
+            }
+            <div class="quiz-award">
+                @for (var t = 0; t < Model.Standings.Count; t++)
+                {
+                    <form method="post" asp-page-handler="Award" asp-route-id="@Model.Game.Id" class="quiz-award-team">
+                        <input type="hidden" name="c" value="@q.Column" /><input type="hidden" name="r" value="@q.Row" /><input type="hidden" name="team" value="@t" />
+                        <span class="quiz-team">@Model.Standings[t].Team</span>
+                        <button type="submit" name="correct" value="true" class="btn btn-small btn-ok">Rigtigt +@points</button>
+                        <button type="submit" name="correct" value="false" class="btn btn-small btn-danger">Forkert −@points</button>
+                    </form>
+                }
+            </div>
+            <form method="post" asp-page-handler="Skip" asp-route-id="@Model.Game.Id" class="quiz-skip">
+                <input type="hidden" name="c" value="@q.Column" /><input type="hidden" name="r" value="@q.Row" />
+                <button type="submit" class="btn">Ingen svarede – luk kortet</button>
+                <a asp-route-id="@Model.Game.Id">Tilbage til brættet (kortet forbliver åbent)</a>
+            </form>
+        </div>
+    }
+    else
+    {
+        <div class="quiz-board quiz-cols-@Model.Quiz.Columns" role="grid" aria-label="Brættet">
+            @for (var c = 0; c < Model.Quiz.Columns; c++)
+            {
+                <div class="quiz-cat" role="columnheader">@Model.CategoryName(c)</div>
+            }
+            @for (var r = 0; r < Model.Quiz.Rows; r++)
+            {
+                @for (var c = 0; c < Model.Quiz.Columns; c++)
+                {
+                    var cell = Model.Cell(c, r);
+                    var used = Model.Used.Contains(Tumlegaarden.Web.Data.QuizGame.Cell(c, r));
+                    if (cell is null)
+                    {
+                        <div class="quiz-card-cell is-empty" role="gridcell" aria-label="Tomt felt"></div>
+                    }
+                    else if (used || Model.Game.Finished || !Model.IsHost)
+                    {
+                        <div class="quiz-card-cell@(used ? " is-used" : "")" role="gridcell" aria-label="@Model.CategoryName(c), @Model.Points[r] point@(used ? ", brugt" : "")">@(used ? "" : Model.Points[r].ToString())</div>
+                    }
+                    else
+                    {
+                        <a class="quiz-card-cell" role="gridcell" asp-route-id="@Model.Game.Id" asp-route-c="@c" asp-route-r="@r" aria-label="@Model.CategoryName(c) til @Model.Points[r] point">@Model.Points[r]</a>
+                    }
+                }
+            }
+        </div>
+
+        @if (Model.Game.Finished)
+        {
+            var winners = Model.Standings.Where(s => s.Score == best).Select(s => s.Team).ToList();
+            <p class="game-result is-won">Spillet er slut! @(winners.Count == 1 ? $"{winners[0]} vinder" : $"Uafgjort mellem {string.Join(" og ", winners)}") med @best point.</p>
+        }
+        else if (Model.IsHost)
+        {
+            <form method="post" asp-page-handler="Finish" asp-route-id="@Model.Game.Id" class="quiz-finish">
+                <button type="submit" class="btn btn-small">Afslut spillet nu</button>
+            </form>
+        }
+        else
+        {
+            <p class="hint">Opdater siden for at se den nyeste stilling.</p>
+        }
+    }
+    <p class="quiz-back"><a asp-page="/Quiz/Index">Til quizzer</a></p>
+</section>

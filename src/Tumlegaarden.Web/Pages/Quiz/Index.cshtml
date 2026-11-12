@@ -1,0 +1,72 @@
+@page
+@model Tumlegaarden.Web.Pages.Quiz.IndexModel
+@{
+    ViewData["Title"] = "Quiz";
+}
+<section class="window window-wide" id="quizzer">
+    <h2 class="window-title">Quiz</h2>
+    <div class="window-body">
+        <div class="game-head">
+            <p class="hint">Quiz i Jeopardy-stil: kategorier øverst, kort med point nedenunder. Én er vært og styrer brættet på en storskærm, holdene byder ind, og værten giver point. Alle kan lave deres egne quizzer.</p>
+            <a class="btn btn-primary" asp-page="/Quiz/Edit">Lav ny quiz</a>
+        </div>
+
+        @if (Model.Quizzes.Count == 0)
+        {
+            <p class="hint">Der er ingen quizzer endnu. Lav den første!</p>
+        }
+        <div class="quiz-list">
+            @foreach (var q in Model.Quizzes)
+            {
+                var total = q.Columns * q.Rows;
+                <article class="quiz-card">
+                    <h3>@q.Title</h3>
+                    @if (q.Description.Length > 0) { <p>@q.Description</p> }
+                    <p class="hint">@q.Columns kategorier × @q.Rows spørgsmål · @q.Filled af @total udfyldt · lavet af @q.CreatedByEmail.Split('@')[0]</p>
+                    <form method="post" asp-page-handler="Start" asp-route-id="@q.Id" class="quiz-start">
+                        <label for="teams-@q.Id">Hold (ét pr. linje)</label>
+                        <textarea id="teams-@q.Id" name="teams" rows="3" maxlength="300">Hold 1&#10;Hold 2</textarea>
+                        <button type="submit" class="btn btn-primary" disabled="@(q.Filled == 0)">Start spil som vært</button>
+                    </form>
+                    @if (Model.CanEdit(q.CreatedById))
+                    {
+                        <div class="quiz-actions">
+                            <a class="btn btn-small" asp-page="/Quiz/Edit" asp-route-id="@q.Id">Rediger</a>
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@q.Id" class="inline">
+                                <label class="confirm"><input type="checkbox" name="confirm" value="true" /> Bekræft</label>
+                                <button type="submit" class="btn btn-small btn-danger">Slet</button>
+                            </form>
+                        </div>
+                    }
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
+@if (Model.Games.Count > 0)
+{
+    <section class="window window-wide" id="spil">
+        <h2 class="window-title">Seneste spil</h2>
+        <div class="window-body">
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Quiz</th><th>Vært</th><th>Hold</th><th>Startet</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var g in Model.Games)
+                        {
+                            <tr>
+                                <td>@g.QuizTitle</td>
+                                <td>@g.HostEmail.Split('@')[0]</td>
+                                <td>@string.Join(", ", g.Teams.Split('\n'))</td>
+                                <td>@TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(g.StartedUtc, DateTimeKind.Utc), Tumlegaarden.Web.Services.DanishTime.Zone).ToString("d. MMM HH:mm", Tumlegaarden.Web.Services.DanishTime.Culture)</td>
+                                <td><a asp-page="/Quiz/Play" asp-route-id="@g.Id">@(g.Finished ? "Se resultat" : g.HostId == Model.MyId ? "Fortsæt" : "Se med")</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="hint">Spil fra de sidste 14 dage. Kun værten kan vende kort og give point; andre kan se med.</p>
+        </div>
+    </section>
+}

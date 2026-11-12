@@ -19,6 +19,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<GameRound> GameRounds => Set<GameRound>();
     public DbSet<AfterDarkRound> AfterDarkRounds => Set<AfterDarkRound>();
     public DbSet<GameResult> GameResults => Set<GameResult>();
+    public DbSet<Quiz> Quizzes => Set<Quiz>();
+    public DbSet<QuizCategory> QuizCategories => Set<QuizCategory>();
+    public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();
+    public DbSet<QuizGame> QuizGames => Set<QuizGame>();
 
     private static void ConfigureRounds<T>(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<T> e, string table) where T : GameRoundBase
     {
@@ -126,6 +130,42 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
 
         builder.Entity<GameRound>(e => ConfigureRounds(e, "GameRounds"));
         builder.Entity<AfterDarkRound>(e => ConfigureRounds(e, "AfterDarkRounds"));
+        builder.Entity<Quiz>(e =>
+        {
+            e.ToTable("Quizzes");
+            e.Property(x => x.Title).HasMaxLength(Quiz.TitleMaxLength).IsRequired();
+            e.Property(x => x.Description).HasMaxLength(Quiz.DescriptionMaxLength).IsRequired();
+            e.Property(x => x.PointValues).HasMaxLength(100).IsRequired();
+            e.Property(x => x.CreatedById).HasMaxLength(255);
+            e.Property(x => x.CreatedByEmail).HasMaxLength(256);
+            e.HasMany(x => x.Categories).WithOne().HasForeignKey(x => x.QuizId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Questions).WithOne().HasForeignKey(x => x.QuizId).OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<QuizCategory>(e =>
+        {
+            e.ToTable("QuizCategories");
+            e.HasIndex(x => new { x.QuizId, x.Column }).IsUnique();
+            e.Property(x => x.Name).HasMaxLength(QuizCategory.NameMaxLength).IsRequired();
+        });
+        builder.Entity<QuizQuestion>(e =>
+        {
+            e.ToTable("QuizQuestions");
+            e.HasIndex(x => new { x.QuizId, x.Column, x.Row }).IsUnique();
+            e.Property(x => x.Question).HasMaxLength(QuizQuestion.QuestionMaxLength).IsRequired();
+            e.Property(x => x.Answer).HasMaxLength(QuizQuestion.AnswerMaxLength).IsRequired();
+        });
+        builder.Entity<QuizGame>(e =>
+        {
+            e.ToTable("QuizGames");
+            e.HasIndex(x => x.HostId);
+            e.Property(x => x.HostId).HasMaxLength(255);
+            e.Property(x => x.HostEmail).HasMaxLength(256);
+            e.Property(x => x.Teams).HasMaxLength(400).IsRequired();
+            e.Property(x => x.Scores).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Used).HasMaxLength(400).IsRequired();
+            e.HasOne(x => x.Quiz).WithMany().HasForeignKey(x => x.QuizId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.HostId).OnDelete(DeleteBehavior.Cascade);
+        });
         builder.Entity<GameResult>(e =>
         {
             e.ToTable("GameResults");

@@ -6,7 +6,7 @@ namespace Tumlegaarden.Web.Services;
 /// <summary>
 /// Fjerner e-mailadresser på brugere, der er slettet (GDPR: ret til sletning).
 /// Kontoen, svar, spil og chatmedlemskaber slettes af databasen (cascade). Indhold, som andre
-/// også bruger – begivenheder, albums, billeder og chatrum – bliver stående, men e-mailen
+/// også bruger – begivenheder, albums, billeder, quizzer og chatrum – bliver stående, men e-mailen
 /// erstattes af <see cref="DeletedUser"/>. Færdige invitationer til slettede adresser fjernes.
 /// Kører efter hver sletning og ved opstart, så også brugere slettet før denne kode ryddes op.
 /// </summary>
@@ -25,6 +25,8 @@ public static class UserDataEraser
             .ExecuteUpdateAsync(s => s.SetProperty(p => p.UploadedByEmail, DeletedUser), ct);
         changed += await db.Events.Where(e => e.CreatedByEmail != DeletedUser && !users.Any(u => u.Id == e.CreatedById))
             .ExecuteUpdateAsync(s => s.SetProperty(e => e.CreatedByEmail, DeletedUser), ct);
+        changed += await db.Quizzes.Where(q => q.CreatedByEmail != DeletedUser && !users.Any(u => u.Id == q.CreatedById))
+            .ExecuteUpdateAsync(s => s.SetProperty(q => q.CreatedByEmail, DeletedUser), ct);
         changed += await db.ChatMessages.Where(m => m.UserEmail != DeletedUser && !users.Any(u => u.Id == m.UserId))
             .ExecuteUpdateAsync(s => s.SetProperty(m => m.UserEmail, DeletedUser), ct);
         // Chatrum gemmer kun opretterens e-mail (og "system" for det globale rum).

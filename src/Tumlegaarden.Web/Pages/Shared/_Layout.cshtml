@@ -32,7 +32,7 @@
                     var path = Context.Request.Path;
                     var inOrdjagt = path.StartsWithSegments("/Ordjagt");
                     var inAfterDark = path.StartsWithSegments("/AfterDark");
-                    var inSpil = path.StartsWithSegments("/Spil");
+                    var inSpil = path.StartsWithSegments("/Spil") || path.StartsWithSegments("/Quiz");
                     string? Current(string page) => path.Equals(page, StringComparison.OrdinalIgnoreCase) ? "page" : null;
                 }
                 <details class="nav-menu">
@@ -45,6 +45,8 @@
                         <li><a asp-page="/Spil/Kode" aria-current="@Current("/Spil/Kode")">Kodeknækker <small>farver</small></a></li>
                         <li><a asp-page="/Spil/Kort" aria-current="@Current("/Spil/Kort")">Højere eller lavere <small>kort</small></a></li>
                         <li><a asp-page="/Spil/Anagram" aria-current="@Current("/Spil/Anagram")">Anagram <small>7 bogstaver</small></a></li>
+                        <li class="nav-menu-sep" role="separator"></li>
+                        <li><a asp-page="/Quiz/Index" aria-current="@(path.StartsWithSegments("/Quiz") ? "page" : null)">Quiz <small>lav din egen</small></a></li>
                     </ul>
                 </details>
                 <a asp-page="/Calendar">Kalender</a>

@@ -1,0 +1,73 @@
+@page "{id:int?}"
+@model Tumlegaarden.Web.Pages.Quiz.EditModel
+@using QuizEntity = Tumlegaarden.Web.Data.Quiz
+@using Tumlegaarden.Web.Data
+@{
+    ViewData["Title"] = Model.Id is null ? "Ny quiz" : "Rediger quiz";
+    var points = Model.Points;
+}
+<form method="post" asp-route-id="@Model.Id" class="quiz-editor" autocomplete="off">
+    <section class="window window-wide">
+        <h2 class="window-title">@(Model.Id is null ? "Ny quiz" : "Rediger quiz")</h2>
+        <div class="window-body">
+            @if (Model.Errors.Count > 0)
+            {
+                <div class="msg msg-err" role="alert"><ul>@foreach (var e in Model.Errors) { <li>@e</li> }</ul></div>
+            }
+            <label for="Input_Title">Titel</label>
+            <input id="Input_Title" name="Input.Title" value="@Model.Input.Title" maxlength="@QuizEntity.TitleMaxLength" required />
+            <label for="Input_Description">Beskrivelse (valgfri)</label>
+            <textarea id="Input_Description" name="Input.Description" rows="2" maxlength="@QuizEntity.DescriptionMaxLength">@Model.Input.Description</textarea>
+
+            <div class="quiz-size">
+                <div>
+                    <label for="Input_Columns">Kategorier</label>
+                    <select id="Input_Columns" name="Input.Columns">
+                        @for (var n = QuizEntity.MinColumns; n <= QuizEntity.MaxColumns; n++) { <option value="@n" selected="@(n == Model.Input.Columns)">@n</option> }
+                    </select>
+                </div>
+                <div>
+                    <label for="Input_Rows">Spørgsmål pr. kategori</label>
+                    <select id="Input_Rows" name="Input.Rows">
+                        @for (var n = QuizEntity.MinRows; n <= QuizEntity.MaxRows; n++) { <option value="@n" selected="@(n == Model.Input.Rows)">@n</option> }
+                    </select>
+                </div>
+                <div>
+                    <label for="Input_PointValues">Point pr. række</label>
+                    <input id="Input_PointValues" name="Input.PointValues" value="@string.Join(",", points)" maxlength="80" />
+                </div>
+                <button type="submit" class="btn" asp-page-handler="Resize" formnovalidate>Opdater bræt</button>
+            </div>
+            <p class="hint">Vælg størrelse og tryk <strong>Opdater bræt</strong> – det, du har skrevet, bliver ikke slettet. Point skrives med komma, fx 100,200,300. Tomme kort vises ikke på brættet.</p>
+        </div>
+    </section>
+
+    <div class="quiz-columns">
+        @for (var c = 0; c < Model.Input.Columns; c++)
+        {
+            <section class="window quiz-column">
+                <h2 class="window-title">Kategori @(c + 1)</h2>
+                <div class="window-body">
+                    <label for="cat-@c">Navn</label>
+                    <input id="cat-@c" name="Input.Categories[@c]" value="@Model.Category(c)" maxlength="@QuizCategory.NameMaxLength" placeholder="Fx Dyr på gården" />
+                    @for (var r = 0; r < Model.Input.Rows; r++)
+                    {
+                        var i = Tumlegaarden.Web.Pages.Quiz.EditModel.Index(c, r);
+                        <div class="quiz-cell">
+                            <span class="quiz-cell-points">@points[r] point</span>
+                            <label for="q-@i" class="sr-only">Spørgsmål til @points[r] point</label>
+                            <textarea id="q-@i" name="Input.Questions[@i]" rows="2" maxlength="@QuizQuestion.QuestionMaxLength" placeholder="Spørgsmål">@Model.Question(c, r)</textarea>
+                            <label for="a-@i" class="sr-only">Svar til @points[r] point</label>
+                            <input id="a-@i" name="Input.Answers[@i]" value="@Model.Answer(c, r)" maxlength="@QuizQuestion.AnswerMaxLength" placeholder="Svar" />
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+
+    <div class="quiz-save">
+        <button type="submit" class="btn btn-primary" asp-page-handler="Save">Gem quiz</button>
+        <a asp-page="/Quiz/Index">Tilbage til quizzer</a>
+    </div>
+</form>
